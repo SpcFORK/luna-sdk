@@ -1,22 +1,8 @@
 // luna-api/collections provides collection fetching for Luna.
 
-{
-	default: default
-} := import('std')
-json := import('json')
-auth := import('auth')
-
-fn _base() auth._cfg.apiBase
+{ base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
 // get fetches a collection by ID.
 fn get(collectionId) {
-	raw := req({ method: 'GET', url: _base() + '/collections/' + string(collectionId), headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	if resp.status {
-		200 -> { ok: true, data: json.parse(resp.body) }
-		_ -> { ok: false, error: 'Collection not found', code: resp.status }
-	}
+	_parse(_bareReq('GET', _base() + '/collections/' + string(collectionId)))
 }

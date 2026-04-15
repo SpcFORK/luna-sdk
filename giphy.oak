@@ -3,11 +3,8 @@
 {
 	default: default
 } := import('std')
-json := import('json')
 http := import('http')
-auth := import('auth')
-
-fn _base() auth._cfg.apiBase
+{ base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
 // search searches Giphy for GIFs.
 //   search('cats', { limit: 10, offset: 0 })
@@ -16,15 +13,7 @@ fn search(query, opts) {
 	limit := default(o.limit, 25)
 	offset := default(o.offset, 0)
 	url := _base() + '/giphy/search?q=' + http.percentEncode(string(query)) + '&limit=' + string(limit) + '&offset=' + string(offset)
-	raw := req({ method: 'GET', url: url, headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	if resp.status {
-		200 -> { ok: true, data: json.parse(resp.body) }
-		_ -> { ok: false, error: 'Request failed', code: resp.status }
-	}
+	_parse(_bareReq('GET', url))
 }
 
 // trending returns trending GIFs.
@@ -35,13 +24,5 @@ fn trending(opts) {
 	limit := default(o.limit, 25)
 	offset := default(o.offset, 0)
 	url := _base() + '/giphy/trending?limit=' + string(limit) + '&offset=' + string(offset)
-	raw := req({ method: 'GET', url: url, headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	if resp.status {
-		200 -> { ok: true, data: json.parse(resp.body) }
-		_ -> { ok: false, error: 'Request failed', code: resp.status }
-	}
+	_parse(_bareReq('GET', url))
 }

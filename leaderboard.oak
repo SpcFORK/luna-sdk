@@ -3,26 +3,9 @@
 // Leaderboard entry shape:
 //   { userId: int, username: string, displayName: string, avatarUrl: string, score: int, rank: int }
 
-{
-	default: default
-} := import('std')
-json := import('json')
-http := import('http')
-auth := import('auth')
+{ base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
-fn _base() auth._cfg.apiBase
-
-fn _req(url) {
-	raw := req({ method: 'GET', url: url, headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	if resp.status {
-		200 -> { ok: true, data: json.parse(resp.body) }
-		_ -> { ok: false, error: 'Request failed', code: resp.status }
-	}
-}
+fn _req(url) _parse(_bareReq('GET', url))
 
 // get returns the current leaderboard.
 fn get() _req(_base() + '/leaderboard')

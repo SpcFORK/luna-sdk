@@ -3,26 +3,12 @@
 // Search result shape:
 //   { users: [...], communities: [...] }
 
-{
-	default: default
-} := import('std')
-json := import('json')
 http := import('http')
-auth := import('auth')
-
-fn _base() auth._cfg.apiBase
+{ base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
 // search queries users and communities.
 //   search('alice')
 fn search(query) {
 	url := _base() + '/search?q=' + http.percentEncode(string(query))
-	raw := req({ method: 'GET', url: url, headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	if resp.status {
-		200 -> { ok: true, data: json.parse(resp.body) }
-		_ -> { ok: false, error: 'Search failed', code: resp.status }
-	}
+	_parse(_bareReq('GET', url))
 }

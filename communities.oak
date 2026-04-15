@@ -24,50 +24,7 @@
 } := import('std')
 json := import('json')
 http := import('http')
-auth := import('auth')
-
-// --- Internal ----------------------------------------------------------------
-
-fn _lunaBase() auth._cfg.apiBase
-
-fn _lunaReq(method, url, body) {
-	headers := { 'Content-Type': 'application/json' }
-	if auth.getToken() != ? -> {
-		headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
-	}
-	raw := req({
-		method: method
-		url: url
-		headers: headers
-		body: default(body, '')
-	})
-	if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-}
-
-fn _parseResponse(resp) if resp.status {
-	200, 201 -> {
-		data := json.parse(resp.body)
-		{ ok: true, data: data }
-	}
-	204 -> { ok: true, data: ? }
-	400, 401, 403, 404, 422 -> {
-		data := json.parse(resp.body)
-		{
-			ok: false
-			error: default(data.message, default(data.error, 'Request failed'))
-			code: resp.status
-			data: data
-		}
-	}
-	_ -> {
-		ok: false
-		error: 'Unexpected response: ' + string(resp.status)
-		code: resp.status
-	}
-}
+{ base: _lunaBase, authReq: _lunaReq, parse: _parseResponse } := import('core')
 
 // --- Community CRUD ----------------------------------------------------------
 

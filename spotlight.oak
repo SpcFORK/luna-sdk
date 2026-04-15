@@ -1,17 +1,10 @@
 // luna-api/spotlight provides spotlight (promoted post) operations for Luna.
 
 json := import('json')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ base: _base, authReq: _req, bareReq: _bareReq, parse: _parse } := import('core')
 
 // active returns currently active spotlighted posts (no auth required).
-fn active() {
-	raw := req({ method: 'GET', url: _base() + '/spotlight/active', headers: {}, body: '' })
-	resp := if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
-	}
-	_parse(resp)
-}
+fn active() _parse(_bareReq('GET', _base() + '/spotlight/active'))
 
 // create spotlights a post. Requires a transaction signature as proof of payment.
 //   create({ postId: 42, communityId: 1, txSignature: '...' })
