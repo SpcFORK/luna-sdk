@@ -19,8 +19,7 @@
 	filter: filter
 } := import('std')
 json := import('json')
-http := import('http')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
 
 // --- Forum Posts -------------------------------------------------------------
 
@@ -35,10 +34,7 @@ fn getPosts(opts) {
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
 	if default(o.flair, '') != '' -> params.flair <- o.flair
-	query := http.queryEncode(params)
-	url := _base() + '/forum/posts'
-	if query != '' -> url <- url + '?' + query
-	_parse(_req('GET', url, ?))
+	_parse(_req('GET', _q(_base() + '/forum/posts', params), ?))
 }
 
 // getPost fetches a single post by ID.
@@ -80,10 +76,7 @@ fn tokenlessPosts(opts) {
 	params := {}
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
-	query := http.queryEncode(params)
-	url := _base() + '/forum/posts/tokenless'
-	if query != '' -> url <- url + '?' + query
-	_parse(_req('GET', url, ?))
+	_parse(_req('GET', _q(_base() + '/forum/posts/tokenless', params), ?))
 }
 
 // --- Impressions -------------------------------------------------------------

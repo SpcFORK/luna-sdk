@@ -34,4 +34,11 @@ fn run(t) {
 
 	// base returns a string
 	'core.base returns string' |> t.eq(type(core.base()), :string)
+
+	// withQuery
+	'core.withQuery is fn' |> t.eq(type(core.withQuery), :function)
+	'core.withQuery empty params' |> t.eq(core.withQuery('/api/x', {}), '/api/x')
+	'core.withQuery with params' |> t.assert(core.withQuery('/api/x', { a: '1' }) != '/api/x')
+	qResult := core.withQuery('/api/x', { a: '1' })
+	'core.withQuery preserves base' |> t.eq(qResult |> import('std').slice(0, 8), '/api/x?a')
 }

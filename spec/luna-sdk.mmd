@@ -1,1 +1,185 @@
-﻿Could not open --target: open C:\Users\Spect\Repos\magnolia\--target: The system cannot find the file specified.
+---
+title: Module Dependency Graph
+---
+flowchart LR
+    subgraph project_modules ["Project Modules"]
+        admin_oak["admin.oak"]
+        referral_oak["referral.oak"]
+        agents_oak["agents.oak"]
+        delegated_oak["delegated.oak"]
+        user_oak["user.oak"]
+        leaderboard_oak["leaderboard.oak"]
+        token_oak["token.oak"]
+        wallet_oak["wallet.oak"]
+        chains_oak["chains.oak"]
+        rewards_oak["rewards.oak"]
+        notifications_oak["notifications.oak"]
+        solana_oak["solana.oak"]
+        auth_oak["auth.oak"]
+        spotlight_oak["spotlight.oak"]
+        forum_oak["forum.oak"]
+        errors_oak["errors.oak"]
+        search_oak["search.oak"]
+        luna_wallet_oak["luna-wallet.oak"]
+        contracts_oak["contracts.oak"]
+        x402_oak["x402.oak"]
+        memes_oak["memes.oak"]
+        config_oak["config.oak"]
+        giphy_oak["giphy.oak"]
+        payments_oak["payments.oak"]
+        funding_oak["funding.oak"]
+        analytics_oak["analytics.oak"]
+        farcaster_oak["farcaster.oak"]
+        dm_oak["dm.oak"]
+        communities_oak["communities.oak"]
+        social_oak["social.oak"]
+        stats_oak["stats.oak"]
+        main_oak(["main.oak"])
+        donate_oak["donate.oak"]
+        erc6492_oak["erc6492.oak"]
+        core_oak["core.oak"]
+        collections_oak["collections.oak"]
+    end
+    subgraph stdlib_core ["Standard Library"]
+        std("std")
+        fs("fs")
+        thread("thread")
+        sort("sort")
+        json("json")
+        fmt("fmt")
+        str("str")
+        http("http")
+    end
+    admin_oak --> json
+    admin_oak --> core_oak
+    referral_oak --> std
+    referral_oak --> json
+    referral_oak --> core_oak
+    agents_oak --> json
+    agents_oak --> http
+    agents_oak --> core_oak
+    delegated_oak --> std
+    delegated_oak --> json
+    delegated_oak --> auth_oak
+    user_oak --> std
+    user_oak --> json
+    user_oak --> http
+    user_oak --> core_oak
+    leaderboard_oak --> core_oak
+    token_oak --> json
+    token_oak --> core_oak
+    wallet_oak --> std
+    wallet_oak --> json
+    wallet_oak --> http
+    wallet_oak --> auth_oak
+    chains_oak --> std
+    rewards_oak --> core_oak
+    notifications_oak --> std
+    notifications_oak --> json
+    notifications_oak --> core_oak
+    fs --> thread
+    thread --> std
+    solana_oak --> std
+    solana_oak --> json
+    solana_oak --> auth_oak
+    auth_oak --> std
+    auth_oak --> json
+    spotlight_oak --> json
+    spotlight_oak --> core_oak
+    forum_oak --> std
+    forum_oak --> json
+    forum_oak --> core_oak
+    search_oak --> http
+    search_oak --> core_oak
+    luna_wallet_oak --> json
+    luna_wallet_oak --> core_oak
+    x402_oak --> std
+    x402_oak --> json
+    x402_oak --> auth_oak
+    memes_oak --> json
+    memes_oak --> http
+    memes_oak --> core_oak
+    fmt --> std
+    config_oak --> std
+    config_oak --> json
+    config_oak --> core_oak
+    giphy_oak --> std
+    giphy_oak --> http
+    giphy_oak --> core_oak
+    sort --> std
+    sort --> thread
+    payments_oak --> json
+    payments_oak --> core_oak
+    funding_oak --> std
+    funding_oak --> json
+    funding_oak --> http
+    funding_oak --> auth_oak
+    analytics_oak --> std
+    analytics_oak --> json
+    analytics_oak --> auth_oak
+    farcaster_oak --> std
+    farcaster_oak --> json
+    farcaster_oak --> auth_oak
+    dm_oak --> std
+    dm_oak --> json
+    dm_oak --> core_oak
+    communities_oak --> std
+    communities_oak --> json
+    communities_oak --> core_oak
+    str --> std
+    social_oak --> json
+    social_oak --> core_oak
+    stats_oak --> core_oak
+    http --> std
+    http --> str
+    http --> fs
+    http --> fmt
+    http --> sort
+    http --> json
+    http --> thread
+    main_oak --> core_oak
+    main_oak --> auth_oak
+    main_oak --> wallet_oak
+    main_oak --> chains_oak
+    main_oak --> erc6492_oak
+    main_oak --> delegated_oak
+    main_oak --> funding_oak
+    main_oak --> farcaster_oak
+    main_oak --> contracts_oak
+    main_oak --> x402_oak
+    main_oak --> errors_oak
+    main_oak --> solana_oak
+    main_oak --> forum_oak
+    main_oak --> memes_oak
+    main_oak --> user_oak
+    main_oak --> social_oak
+    main_oak --> communities_oak
+    main_oak --> notifications_oak
+    main_oak --> dm_oak
+    main_oak --> luna_wallet_oak
+    main_oak --> token_oak
+    main_oak --> config_oak
+    main_oak --> stats_oak
+    main_oak --> spotlight_oak
+    main_oak --> search_oak
+    main_oak --> leaderboard_oak
+    main_oak --> payments_oak
+    main_oak --> referral_oak
+    main_oak --> rewards_oak
+    main_oak --> admin_oak
+    main_oak --> giphy_oak
+    main_oak --> collections_oak
+    main_oak --> analytics_oak
+    main_oak --> agents_oak
+    main_oak --> donate_oak
+    donate_oak --> json
+    donate_oak --> core_oak
+    erc6492_oak --> std
+    erc6492_oak --> str
+    json --> std
+    json --> str
+    core_oak --> std
+    core_oak --> json
+    core_oak --> http
+    core_oak --> auth_oak
+    collections_oak --> core_oak

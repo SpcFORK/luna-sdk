@@ -23,8 +23,7 @@
 	filter: filter
 } := import('std')
 json := import('json')
-http := import('http')
-{ base: _lunaBase, authReq: _lunaReq, parse: _parseResponse } := import('core')
+{ base: _lunaBase, authReq: _lunaReq, parse: _parseResponse, withQuery: _q } := import('core')
 
 // --- Community CRUD ----------------------------------------------------------
 
@@ -34,9 +33,7 @@ fn get(slug) {
 }
 
 fn list(opts) {
-	query := http.queryEncode(default(opts, {}))
-	url := _lunaBase() + '/communities'
-	if query != '' -> url <- url + '?' + query
+	url := _q(_lunaBase() + '/communities', default(opts, {}))
 	resp := _lunaReq('GET', url, ?)
 	_parseResponse(resp)
 }
@@ -79,9 +76,7 @@ fn leave(slug) {
 }
 
 fn members(slug, opts) {
-	query := http.queryEncode(default(opts, {}))
-	url := _lunaBase() + '/communities/' + string(slug) + '/members'
-	if query != '' -> url <- url + '?' + query
+	url := _q(_lunaBase() + '/communities/' + string(slug) + '/members', default(opts, {}))
 	resp := _lunaReq('GET', url, ?)
 	_parseResponse(resp)
 }
@@ -89,9 +84,7 @@ fn members(slug, opts) {
 // --- Posts -------------------------------------------------------------------
 
 fn getPosts(slug, opts) {
-	query := http.queryEncode(default(opts, {}))
-	url := _lunaBase() + '/communities/' + string(slug) + '/posts'
-	if query != '' -> url <- url + '?' + query
+	url := _q(_lunaBase() + '/communities/' + string(slug) + '/posts', default(opts, {}))
 	resp := _lunaReq('GET', url, ?)
 	_parseResponse(resp)
 }

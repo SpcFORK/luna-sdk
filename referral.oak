@@ -7,8 +7,7 @@
 	default: default
 } := import('std')
 json := import('json')
-http := import('http')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
 
 // claim claims pending referral rewards.
 fn claim() _parse(_req('POST', _base() + '/referral/claim', json.serialize({})))
@@ -24,8 +23,5 @@ fn history(opts) {
 	params := {}
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
-	query := http.queryEncode(params)
-	url := _base() + '/referral/history'
-	if query != '' -> url <- url + '?' + query
-	_parse(_req('GET', url, ?))
+	_parse(_req('GET', _q(_base() + '/referral/history', params), ?))
 }

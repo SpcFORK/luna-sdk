@@ -5,7 +5,7 @@ Magnolia/Oak abstraction layer for the **Luna social platform** and **Privy Web3
 Provides idiomatic Oak interfaces for forum posts, communities, direct messaging, token-gated access, wallet signing, multi-chain support, and more — all in a single `import()`.
 
 ```
-Version: 0.8.0
+Version: 0.9.0
 Language: Oak (Magnolia)
 Dependencies: std, json, http, str, fmt, sort, thread, fs (stdlib only)
 ```

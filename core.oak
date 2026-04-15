@@ -4,6 +4,7 @@
 	default: default
 } := import('std')
 json := import('json')
+http := import('http')
 auth := import('auth')
 
 fn base() auth._cfg.apiBase
@@ -49,5 +50,17 @@ fn parse(resp) if resp.status {
 			error: default(data.error, default(data.message, 'Request failed'))
 			code: resp.status
 		}
+	}
+}
+
+// withQuery appends query parameters to a URL. params is an object of key-value
+// pairs. Keys with empty-string or null values are skipped.
+//   withQuery('/api/posts', { sort: 'hot', limit: '10' })
+//   => '/api/posts?sort=hot&limit=10'
+fn withQuery(url, params) {
+	query := http.queryEncode(default(params, {}))
+	if query != '' {
+		true -> url + '?' + query
+		_ -> url
 	}
 }

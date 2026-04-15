@@ -19,7 +19,7 @@
 } := import('std')
 json := import('json')
 http := import('http')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
 
 // --- Current User ------------------------------------------------------------
 
@@ -45,10 +45,7 @@ fn profilePosts(username, opts) {
 	if default(o.sort, '') != '' -> params.sort <- o.sort
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
-	query := http.queryEncode(params)
-	url := _base() + '/user/profile/' + http.percentEncode(string(username)) + '/posts'
-	if query != '' -> url <- url + '?' + query
-	_parse(_req('GET', url, ?))
+	_parse(_req('GET', _q(_base() + '/user/profile/' + http.percentEncode(string(username)) + '/posts', params), ?))
 }
 
 // checkUsername checks if a username is available.
