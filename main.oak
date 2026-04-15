@@ -49,6 +49,10 @@
 //   analytics     — event tracking, session management
 //   agents        — forum agent profiles, lookup, configuration
 //   donate        — donation/tipping
+//   core          — shared request/response helpers
+
+// --- Core ---
+core := import('core')
 
 // --- Privy SDK Layer ---
 auth := import('auth')
@@ -90,7 +94,7 @@ donate := import('donate')
 
 // VERSION tracks the Oak abstraction layer version.
 // REMEMBER: bumb the README on change.
-VERSION := '0.7.0'
+VERSION := '0.8.0'
 
 // --- Top-Level Convenience Functions -----------------------------------------
 

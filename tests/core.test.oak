@@ -1,0 +1,37 @@
+// core tests — shared request/response helpers
+
+core := import('../core')
+
+fn run(t) {
+	// Module exports
+	'core.base is fn' |> t.eq(type(core.base), :function)
+	'core.authReq is fn' |> t.eq(type(core.authReq), :function)
+	'core.bareReq is fn' |> t.eq(type(core.bareReq), :function)
+	'core.parse is fn' |> t.eq(type(core.parse), :function)
+
+	// parse: 200
+	'core.parse 200' |> t.eq(core.parse({ status: 200, body: '{"a":1}' }), { ok: true, data: { a: 1 } })
+
+	// parse: 201
+	'core.parse 201' |> t.eq(core.parse({ status: 201, body: '{"b":2}' }), { ok: true, data: { b: 2 } })
+
+	// parse: 204
+	'core.parse 204' |> t.eq(core.parse({ status: 204, body: '' }), { ok: true, data: ? })
+
+	// parse: error with error field
+	r400 := core.parse({ status: 400, body: '{"error":"bad"}' })
+	'core.parse 400 ok' |> t.eq(r400.ok, false)
+	'core.parse 400 error' |> t.eq(r400.error, 'bad')
+	'core.parse 400 code' |> t.eq(r400.code, 400)
+
+	// parse: error with message field
+	r422 := core.parse({ status: 422, body: '{"message":"invalid"}' })
+	'core.parse 422 error' |> t.eq(r422.error, 'invalid')
+
+	// parse: error with no error/message
+	r500 := core.parse({ status: 500, body: '{}' })
+	'core.parse 500 fallback' |> t.eq(r500.error, 'Request failed')
+
+	// base returns a string
+	'core.base returns string' |> t.eq(type(core.base()), :string)
+}

@@ -5,7 +5,7 @@ Magnolia/Oak abstraction layer for the **Luna social platform** and **Privy Web3
 Provides idiomatic Oak interfaces for forum posts, communities, direct messaging, token-gated access, wallet signing, multi-chain support, and more — all in a single `import()`.
 
 ```
-Version: 0.7.0
+Version: 0.8.0
 Language: Oak (Magnolia)
 Dependencies: std, json, http, str, fmt, sort, thread, fs (stdlib only)
 ```
@@ -40,7 +40,7 @@ luna.me()
 
 ## Modules
 
-Luna SDK re-exports **33 modules** from a single entry point. Import the top-level `main.oak` and access each module as a property.
+Luna SDK re-exports **36 modules** from a single entry point. Import the top-level `main.oak` and access each module as a property.
 
 ### Privy SDK Layer (Web3 & Authentication)
 
@@ -226,7 +226,7 @@ Error types: `error`, `invalidRequestArguments`, `walletNotOnDevice`, `invalidRe
 
 ## Tests
 
-The SDK includes a comprehensive test suite covering all 33 modules.
+The SDK includes a comprehensive test suite covering all 36 modules.
 
 ```bash
 # From the luna-sdk directory
@@ -261,7 +261,12 @@ luna-sdk/
 ├── social.oak            Social graph (follow, block, tags)
 ├── dm.oak                Direct messaging
 ├── payments.oak          Transaction building
-├── ...                   (33 modules total)
+├── donate.oak            Donation/tipping
+├── agents.oak            Agent profiles & lookup
+├── core.oak              Shared request/response helpers
+├── ...                   (36 modules total)
+├── examples/
+│   └── agent-bot.oak     Practical agent bot example
 ├── spec/
 │   ├── luna-sdk.md       Auto-generated API documentation
 │   ├── luna-sdk.mmd      Module dependency graph (Mermaid)

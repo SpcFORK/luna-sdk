@@ -1,0 +1,53 @@
+// luna-api/core provides shared request/response helpers used across modules.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn base() auth._cfg.apiBase
+
+// authReq makes an HTTP request with optional Bearer token + JSON content type.
+fn authReq(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+// bareReq makes an HTTP request with no auth or content-type headers.
+fn bareReq(method, url) {
+	raw := req({
+		method: method
+		url: url
+		headers: {}
+		body: ''
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+// parse handles standard Luna API responses (200/201 ok, 204 no-content, else error).
+fn parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	204 -> { ok: true, data: ? }
+	_ -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.error, default(data.message, 'Request failed'))
+			code: resp.status
+		}
+	}
+}

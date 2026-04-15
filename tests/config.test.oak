@@ -10,4 +10,10 @@ fn run(t) {
 	'live: config has swapPercentage' |> t.assert(result.data.swapPercentage >= 0)
 	'live: config has creatorPercentage' |> t.assert(result.data.creatorPercentage >= 0)
 	'live: config has postLimit' |> t.assert(result.data.postLimit > 0)
+
+	// solPrice fetches from CoinGecko
+	sol := config.solPrice()
+	'live: solPrice returns result' |> t.assert(sol != ?)
+	'live: solPrice has price field' |> t.assert(sol.price >= 0)
+	'config.solPrice is fn' |> t.eq(type(config.solPrice), :function)
 }
