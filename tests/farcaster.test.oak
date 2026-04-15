@@ -12,4 +12,6 @@ fn run(t) {
 	'farcaster.unlinkFarcaster is fn' |> t.eq(type(farcaster.unlinkFarcaster), :function)
 	'farcaster.getCrossAppAccounts is fn' |> t.eq(type(farcaster.getCrossAppAccounts), :function)
 	'farcaster.getGuestAccounts is fn' |> t.eq(type(farcaster.getGuestAccounts), :function)
+	'farcaster.transferFarcaster is fn' |> t.eq(type(farcaster.transferFarcaster), :function)
+	'farcaster.signerStatus is fn' |> t.eq(type(farcaster.signerStatus), :function)
 }

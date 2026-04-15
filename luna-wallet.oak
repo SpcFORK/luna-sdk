@@ -68,3 +68,7 @@ fn allowance() _parse(_req('GET', _base() + '/wallet/allowance', ?))
 
 // syncDeposits triggers a deposit sync for the authenticated user.
 fn syncDeposits() _parse(_req('POST', _base() + '/wallet/sync-deposits', json.serialize({})))
+
+// recordTransfer logs a transfer transaction in Luna's ledger.
+//   recordTransfer({ from: '...', to: '...', amount: 100, token: '...', txHash: '...' })
+fn recordTransfer(opts) _parse(_req('POST', _base() + '/wallet/record-transfer', json.serialize(opts)))

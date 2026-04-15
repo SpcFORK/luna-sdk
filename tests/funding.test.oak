@@ -31,4 +31,8 @@ fn run(t) {
 	// Coinbase on-ramp functions
 	'funding.initCoinbaseOnramp is fn' |> t.eq(type(funding.initCoinbaseOnramp), :function)
 	'funding.checkCoinbaseOnrampStatus is fn' |> t.eq(type(funding.checkCoinbaseOnrampStatus), :function)
+
+	// Privy token/SPL info endpoints
+	'funding.getSplTokenInfo is fn' |> t.eq(type(funding.getSplTokenInfo), :function)
+	'funding.getPrivyTokenPrice is fn' |> t.eq(type(funding.getPrivyTokenPrice), :function)
 }

@@ -84,3 +84,22 @@ fn save(postId) {
 fn resolveUrl(url) {
 	_parse(_req('GET', _base() + '/memes/resolve-url?url=' + http.percentEncode(url), ?))
 }
+
+// --- Meme Lookup & Management ------------------------------------------------
+
+// getMeme fetches a meme/post by ID.
+fn getMeme(memeId) {
+	_parse(_req('GET', _base() + '/memes/' + string(memeId), ?))
+}
+
+// deleteMeme deletes a meme by ID (requires auth, must own it).
+fn deleteMeme(memeId) {
+	_parse(_req('DELETE', _base() + '/memes/' + string(memeId), ?))
+}
+
+// --- AI Generation -----------------------------------------------------------
+
+// generateMeme uses AI to generate a meme from a prompt.
+fn generateMeme(opts) {
+	_parse(_req('POST', _base() + '/generate/meme', json.serialize(opts)))
+}

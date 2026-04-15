@@ -12,4 +12,9 @@ fn run(t) {
 	// holdings endpoint
 	holdings := lunaWallet.holdings('FxfCiq3EToCd5WiNXUFSAKw8FAfR9QWzewjRivRkTWRC')
 	'live: wallet holdings ok' |> t.eq(holdings.ok, true)
+
+	// recordTransfer structural check (needs auth)
+	record := lunaWallet.recordTransfer({})
+	'luna-wallet: recordTransfer returns result' |> t.assert(record != ?)
+	'luna-wallet: recordTransfer has ok field' |> t.assert(record.ok != ?)
 }

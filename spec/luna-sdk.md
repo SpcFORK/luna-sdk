@@ -91,6 +91,8 @@ _Auto-generated from Magnolia source._
 
 ### `loginWithOAuth(provider, opts)`
 
+### `authenticateOAuth(authorizationCode, stateCode, opts)`
+
 ### `loginWithSms(phone)`
 
 ### `verifySmsCode(flowId, code)`
@@ -123,7 +125,13 @@ _Auto-generated from Magnolia source._
 
 > returns `:object`
 
+### `sessionLogout()`
+
+> returns `:object`
+
 ### `mfaEnrollTotp()`
+
+### `mfaInitTotp()`
 
 ### `mfaVerifyTotp(code)`
 
@@ -134,6 +142,8 @@ _Auto-generated from Magnolia source._
 ### `mfaEnrollPasskey()`
 
 ### `mfaVerifyPasskey(attestation)`
+
+### `mfaChallengePasskey()`
 
 ### `linkOAuth(provider, opts)`
 
@@ -166,6 +176,18 @@ _Auto-generated from Magnolia source._
 ### `unlinkPhone(phone)`
 
 ### `linkSmartWallet(message, signature)`
+
+### `transferEmail(email)`
+
+### `transferPhone(phone)`
+
+### `transferOAuth(provider, opts)`
+
+### `transferSiwe(message, signature)`
+
+### `transferSiws(message, signature)`
+
+### `transferTelegram(telegramAuthData)`
 
 ### `getUser()`
 
@@ -398,6 +420,20 @@ _Auto-generated from Magnolia source._
 
 ### `addGroupMembers(groupId, userIds)`
 
+## Module: `donate.oak`
+
+- `json` · `import(...)`
+- `auth` · `import(...)`
+### `_base()`
+
+### `_req(method, url, body)`
+
+### `_parse(resp)`
+
+> returns `:object`
+
+### `donate(opts)`
+
 ## Module: `erc6492.oak`
 
 - `ERC6492_SUFFIX` · `'649264926492649264926492649264926492649264926492649264926...'`
@@ -472,6 +508,10 @@ _Auto-generated from Magnolia source._
 ### `linkFarcaster(opts)`
 
 ### `unlinkFarcaster()`
+
+### `transferFarcaster(opts)`
+
+### `signerStatus(signerPublicKey)`
 
 ### `getCrossAppAccounts()`
 
@@ -554,6 +594,10 @@ _Auto-generated from Magnolia source._
 
 ### `getOnrampStatus(sessionId)`
 
+### `getSplTokenInfo(mintAddress)`
+
+### `getPrivyTokenPrice(opts)`
+
 ### `_parseFundingResponse(resp)`
 
 > returns `:object`
@@ -612,6 +656,8 @@ _Auto-generated from Magnolia source._
 
 ### `syncDeposits()`
 
+### `recordTransfer(opts)`
+
 ## Module: `main.oak`
 
 - `auth` · `import(...)`
@@ -647,7 +693,8 @@ _Auto-generated from Magnolia source._
 - `collections` · `import(...)`
 - `analytics` · `import(...)`
 - `agents` · `import(...)`
-- `VERSION` · `'0.6.0'`
+- `donate` · `import(...)`
+- `VERSION` · `'0.7.0'`
 ### `init(opts)`
 
 ### `login(email)`
@@ -697,6 +744,12 @@ _Auto-generated from Magnolia source._
 
 ### `resolveUrl(url)`
 
+### `getMeme(memeId)`
+
+### `deleteMeme(memeId)`
+
+### `generateMeme(opts)`
+
 ## Module: `notifications.oak`
 
 - `json` · `import(...)`
@@ -733,6 +786,10 @@ _Auto-generated from Magnolia source._
 ### `buildApprove(opts)`
 
 ### `buildTransfer(opts)`
+
+### `buildSolTransfer(opts)`
+
+### `buildSplTransfer(opts)`
 
 ### `link(opts)`
 

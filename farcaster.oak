@@ -49,6 +49,18 @@ fn unlinkFarcaster() {
 	_parseFarcasterResponse(resp)
 }
 
+// transferFarcaster transfers a Farcaster account to the current user.
+fn transferFarcaster(opts) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/transfer', json.serialize(default(opts, {})))
+	_parseFarcasterResponse(resp)
+}
+
+// signerStatus returns the status of a Farcaster signer registration.
+fn signerStatus(signerPublicKey) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/signer/status', json.serialize({ publicKey: signerPublicKey }))
+	_parseFarcasterResponse(resp)
+}
+
 // --- Cross-App Accounts ------------------------------------------------------
 
 fn getCrossAppAccounts() {

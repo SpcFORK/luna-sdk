@@ -7,4 +7,12 @@ fn run(t) {
 	result := payments.buildApprove({})
 	'payments: buildApprove returns result' |> t.assert(result != ?)
 	'payments: buildApprove has ok field' |> t.assert(result.ok != ?)
+
+	solResult := payments.buildSolTransfer({})
+	'payments: buildSolTransfer returns result' |> t.assert(solResult != ?)
+	'payments: buildSolTransfer has ok field' |> t.assert(solResult.ok != ?)
+
+	splResult := payments.buildSplTransfer({})
+	'payments: buildSplTransfer returns result' |> t.assert(splResult != ?)
+	'payments: buildSplTransfer has ok field' |> t.assert(splResult.ok != ?)
 }

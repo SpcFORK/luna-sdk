@@ -74,4 +74,18 @@ fn run(t) {
 	'auth unlinkTelegram is fn' |> t.eq(type(auth.unlinkTelegram), :function)
 	'auth initPasskeyLink is fn' |> t.eq(type(auth.initPasskeyLink), :function)
 	'auth mfaEnrollPasskey is fn' |> t.eq(type(auth.mfaEnrollPasskey), :function)
+
+	// Account transfer endpoints
+	'auth transferEmail is fn' |> t.eq(type(auth.transferEmail), :function)
+	'auth transferPhone is fn' |> t.eq(type(auth.transferPhone), :function)
+	'auth transferOAuth is fn' |> t.eq(type(auth.transferOAuth), :function)
+	'auth transferSiwe is fn' |> t.eq(type(auth.transferSiwe), :function)
+	'auth transferSiws is fn' |> t.eq(type(auth.transferSiws), :function)
+	'auth transferTelegram is fn' |> t.eq(type(auth.transferTelegram), :function)
+
+	// Session & MFA additions
+	'auth sessionLogout is fn' |> t.eq(type(auth.sessionLogout), :function)
+	'auth mfaInitTotp is fn' |> t.eq(type(auth.mfaInitTotp), :function)
+	'auth authenticateOAuth is fn' |> t.eq(type(auth.authenticateOAuth), :function)
+	'auth mfaChallengePasskey is fn' |> t.eq(type(auth.mfaChallengePasskey), :function)
 }

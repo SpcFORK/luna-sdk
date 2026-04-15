@@ -137,6 +137,22 @@ fn getOnrampStatus(sessionId) {
 	_parseFundingResponse(resp)
 }
 
+// --- Token Info --------------------------------------------------------------
+
+// getSplTokenInfo fetches SPL token metadata by mint address.
+fn getSplTokenInfo(mintAddress) {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/spl_token_info?mint_address=' + string(mintAddress), ?)
+	_parseFundingResponse(resp)
+}
+
+// getPrivyTokenPrice fetches token price from the Privy pricing API.
+fn getPrivyTokenPrice(opts) {
+	qs := '?chain_id=' + string(default(opts.chainId, ''))
+	if opts.tokenAddress != ? -> qs <- qs + '&token_address=' + string(opts.tokenAddress)
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/token_price' + qs, ?)
+	_parseFundingResponse(resp)
+}
+
 // --- Internal ----------------------------------------------------------------
 
 fn _parseFundingResponse(resp) if resp.status {

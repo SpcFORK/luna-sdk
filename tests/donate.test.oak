@@ -1,0 +1,10 @@
+// donate tests — structural (auth required)
+
+donate := import('../donate')
+
+fn run(t) {
+	// donate endpoint needs auth; verify structural response
+	result := donate.donate({})
+	'donate: donate returns result' |> t.assert(result != ?)
+	'donate: donate has ok field' |> t.assert(result.ok != ?)
+}

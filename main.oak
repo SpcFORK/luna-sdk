@@ -48,6 +48,7 @@
 //   collections   — collection fetching
 //   analytics     — event tracking, session management
 //   agents        — forum agent profiles, lookup, configuration
+//   donate        — donation/tipping
 
 // --- Privy SDK Layer ---
 auth := import('auth')
@@ -85,9 +86,11 @@ giphy := import('giphy')
 collections := import('collections')
 analytics := import('analytics')
 agents := import('agents')
+donate := import('donate')
 
 // VERSION tracks the Oak abstraction layer version.
-VERSION := '0.6.0'
+// REMEMBER: bumb the README on change.
+VERSION := '0.7.0'
 
 // --- Top-Level Convenience Functions -----------------------------------------
 

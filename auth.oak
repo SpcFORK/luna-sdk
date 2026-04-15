@@ -74,6 +74,21 @@ fn loginWithOAuth(provider, opts) {
 	_parseAuthResponse(resp)
 }
 
+// authenticateOAuth completes OAuth login after the redirect callback.
+fn authenticateOAuth(authorizationCode, stateCode, opts) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/authenticate', json.serialize({
+		authorizationCode: authorizationCode
+		stateCode: stateCode
+		redirectUrl: default(opts.redirectUrl, '')
+	}))
+	result := _parseAuthResponse(resp)
+	if result.token != ? -> {
+		setToken(result.token)
+		setRefreshToken(result.refreshToken)
+	}
+	result
+}
+
 fn loginWithSms(phone) {
 	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/init', json.serialize({ phone: phone }))
 	_parseAuthResponse(resp)
@@ -190,10 +205,24 @@ fn logout() {
 	{ ok: true }
 }
 
+// sessionLogout sends a logout (as opposed to revoke) to end the session.
+fn sessionLogout() {
+	_req('POST', _cfg.privyBase + '/api/v1/sessions/logout', json.serialize({}))
+	setToken(?)
+	setRefreshToken(?)
+	{ ok: true }
+}
+
 // --- MFA (Multi-Factor Authentication) ---------------------------------------
 
 fn mfaEnrollTotp() {
 	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/enroll', json.serialize({}))
+	_parseAuthResponse(resp)
+}
+
+// mfaInitTotp initializes TOTP verification (returns challenge).
+fn mfaInitTotp() {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/init', json.serialize({}))
 	_parseAuthResponse(resp)
 }
 
@@ -219,6 +248,12 @@ fn mfaEnrollPasskey() {
 
 fn mfaVerifyPasskey(attestation) {
 	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/passkeys/verify', json.serialize({ attestation: attestation }))
+	_parseAuthResponse(resp)
+}
+
+// mfaChallengePasskey starts a passkey MFA challenge (separate from enrollment).
+fn mfaChallengePasskey() {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa/passkeys/init', json.serialize({}))
 	_parseAuthResponse(resp)
 }
 
@@ -303,6 +338,46 @@ fn unlinkPhone(phone) {
 
 fn linkSmartWallet(message, signature) {
 	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/link_smart_wallet', json.serialize({ message: message, signature: signature }))
+	_parseAuthResponse(resp)
+}
+
+// --- Account Transfer --------------------------------------------------------
+// Transfer endpoints move a linked account from one user to another.
+
+// transferEmail transfers an email account to the current user.
+fn transferEmail(email) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/transfer', json.serialize({ email: email }))
+	_parseAuthResponse(resp)
+}
+
+// transferPhone transfers a phone account to the current user.
+fn transferPhone(phone) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/transfer', json.serialize({ phone: phone }))
+	_parseAuthResponse(resp)
+}
+
+// transferOAuth transfers an OAuth account to the current user.
+fn transferOAuth(provider, opts) {
+	body := json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') })
+	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/transfer', body)
+	_parseAuthResponse(resp)
+}
+
+// transferSiwe transfers a SIWE-linked wallet to the current user.
+fn transferSiwe(message, signature) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/transfer', json.serialize({ message: message, signature: signature }))
+	_parseAuthResponse(resp)
+}
+
+// transferSiws transfers a SIWS-linked wallet to the current user.
+fn transferSiws(message, signature) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/transfer', json.serialize({ message: message, signature: signature }))
+	_parseAuthResponse(resp)
+}
+
+// transferTelegram transfers a Telegram account to the current user.
+fn transferTelegram(telegramAuthData) {
+	resp := _req('POST', _cfg.privyBase + '/api/v1/telegram/transfer', json.serialize({ telegramAuthData: telegramAuthData }))
 	_parseAuthResponse(resp)
 }
 

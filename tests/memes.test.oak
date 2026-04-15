@@ -6,4 +6,14 @@ fn run(t) {
 	// resolveUrl is a read-only endpoint
 	result := memes.resolveUrl('https://example.com')
 	'live: memes resolveUrl responds' |> t.assert(result.ok != ?)
+
+	// getMeme structural check (needs valid id, expect error/response)
+	getResult := memes.getMeme('nonexistent-id')
+	'memes: getMeme returns result' |> t.assert(getResult != ?)
+	'memes: getMeme has ok field' |> t.assert(getResult.ok != ?)
+
+	// generateMeme structural check (needs auth)
+	genResult := memes.generateMeme({ prompt: 'test' })
+	'memes: generateMeme returns result' |> t.assert(genResult != ?)
+	'memes: generateMeme has ok field' |> t.assert(genResult.ok != ?)
 }

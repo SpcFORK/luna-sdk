@@ -38,5 +38,13 @@ fn buildApprove(opts) _parse(_req('POST', _base() + '/payments/build-approve', j
 // buildTransfer builds a USDC transfer transaction.
 fn buildTransfer(opts) _parse(_req('POST', _base() + '/payments/build-transfer', json.serialize(opts)))
 
+// buildSolTransfer builds a SOL transfer transaction.
+//   buildSolTransfer({ to: '...', amount: 0.1, memo: '...' })
+fn buildSolTransfer(opts) _parse(_req('POST', _base() + '/payments/build-sol-transfer', json.serialize(opts)))
+
+// buildSplTransfer builds an SPL token transfer transaction.
+//   buildSplTransfer({ to: '...', mint: '...', amount: 100 })
+fn buildSplTransfer(opts) _parse(_req('POST', _base() + '/payments/build-spl-transfer', json.serialize(opts)))
+
 // link links a completed payment (tx signature) to a Luna action.
 fn link(opts) _parse(_req('POST', _base() + '/payments/link', json.serialize(opts)))
