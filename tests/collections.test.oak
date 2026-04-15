@@ -1,0 +1,10 @@
+// collections tests — structural check
+
+collections := import('../collections')
+
+fn run(t) {
+	// collection 1 may or may not exist; verify structural response
+	result := collections.get(1)
+	'collections: get returns result' |> t.assert(result != ?)
+	'collections: get has ok field' |> t.assert(result.ok != ?)
+}

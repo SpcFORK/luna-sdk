@@ -1,0 +1,65 @@
+// luna-api/contracts provides smart contract addresses and ABI constants
+// for the Coinbase Smart Wallet / Base Account system used by Luna/Privy.
+
+// --- Contract Addresses (Base / Coinbase Smart Wallet) -----------------------
+
+// AccountImplementation is the on-chain implementation contract for smart wallets.
+AccountImplementation := '0xba5ed110efdba3d005bfc882d75358acbbb85842'
+
+// Factory is the factory contract that creates new smart wallet accounts.
+Factory := '0xf85210B21cC50302F477BA56686d2019dC9b67Ad'
+
+// CoinbaseKeysUrl is the Coinbase keys/connect endpoint.
+CoinbaseKeysUrl := 'https://keys.coinbase.com/connect'
+
+// CoinbaseRpcUrl is the Coinbase wallet RPC endpoint.
+CoinbaseRpcUrl := 'https://rpc.wallet.coinbase.com'
+
+// --- ABI Function Signatures -------------------------------------------------
+// Canonical function selectors for the smart wallet contracts.
+
+AccountABI := {
+	// Core execution
+	execute: 'execute(address,uint256,bytes)'
+	executeBatch: 'executeBatch((address,uint256,bytes)[])'
+
+	// Owner management
+	addOwnerAddress: 'addOwnerAddress(bytes)'
+	addOwnerPublicKey: 'addOwnerPublicKey(bytes32)'
+	removeOwnerAtIndex: 'removeOwnerAtIndex(uint256)'
+	removeLastOwner: 'removeLastOwner()'
+	ownerCount: 'ownerCount()'
+	ownerAtIndex: 'ownerAtIndex(uint256)'
+
+	// Signature validation (EIP-1271)
+	isValidSignature: 'isValidSignature(bytes32,bytes)'
+
+	// ERC-4337 UserOperation
+	validateUserOp: 'validateUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32,uint256)'
+
+	// Upgradeability (UUPS)
+	upgradeToAndCall: 'upgradeToAndCall(address,bytes)'
+}
+
+FactoryABI := {
+	createAccount: 'createAccount(bytes[],uint256)'
+	getAddress: 'getAddress(bytes[],uint256)'
+	implementation: 'implementation()'
+}
+
+// --- SDK Info ----------------------------------------------------------------
+
+BaseAccountSDK := {
+	name: '@base-org/account'
+	version: '1.1.1'
+}
+
+// --- Data Suffix (viem) ------------------------------------------------------
+
+// dataSuffix is appended to transaction calldata by viem's sendTransaction,
+// estimateGas, simulateContract, and wallet_sendCalls. It is a hex string
+// (without 0x prefix) concatenated to the data field.
+dataSuffix := {
+	description: 'Hex string appended to transaction calldata'
+	usage: 'Strip 0x prefix before appending to tx.data'
+}

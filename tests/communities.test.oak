@@ -1,0 +1,56 @@
+// communities tests — helper predicates & live API
+
+communities := import('../communities')
+
+fn run(t) {
+	'communities.verified? true when isVerified' |> t.eq(
+		communities.verified?({ isVerified: true })
+		true
+	)
+
+	'communities.verified? false when not' |> t.eq(
+		communities.verified?({ isVerified: false })
+		false
+	)
+
+	'communities.highlighted? true' |> t.eq(
+		communities.highlighted?({ isHighlighted: true })
+		true
+	)
+
+	'communities.private? true' |> t.eq(
+		communities.private?({ isPrivate: true })
+		true
+	)
+
+	'communities.private? false' |> t.eq(
+		communities.private?({ isPrivate: false })
+		false
+	)
+
+	'communities.hasToken? true with tokenMint' |> t.eq(
+		communities.hasToken?({ tokenMint: '0xabc', tokenSymbol: 'TKN' })
+		true
+	)
+
+	'communities.hasToken? false with null' |> t.eq(
+		communities.hasToken?({ tokenMint: ? })
+		false
+	)
+
+	'communities.hasToken? false with empty string' |> t.eq(
+		communities.hasToken?({ tokenMint: '' })
+		false
+	)
+
+	// integration — live API fetch
+	result := communities.get('web-devs')
+	'live: community get ok' |> t.eq(result.ok, true)
+	'live: community slug' |> t.eq(result.data.slug, 'web-devs')
+	'live: community name' |> t.eq(result.data.name, 'Web Devs')
+	'live: community has id' |> t.assert(result.data.id > 0)
+	'live: community has memberCount' |> t.assert(result.data.memberCount >= 0)
+	'live: community createdAt is string' |> t.assert(
+		type(result.data.createdAt) = :string
+	)
+}

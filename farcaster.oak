@@ -1,0 +1,91 @@
+// luna-api/farcaster provides Farcaster social protocol integration
+// for the Luna/Privy SDK.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+// --- Farcaster Auth ----------------------------------------------------------
+
+fn loginWithFarcaster(opts) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v2/farcaster/init', json.serialize(default(opts, {})))
+	_parseFarcasterResponse(resp)
+}
+
+fn getFarcasterSigner() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/farcaster/status', ?)
+	_parseFarcasterResponse(resp)
+}
+
+fn createFarcasterSigner() {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/init', json.serialize({}))
+	_parseFarcasterResponse(resp)
+}
+
+fn checkFarcasterStatus(nonce) {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/farcaster/status?nonce=' + string(default(nonce, '')), ?)
+	_parseFarcasterResponse(resp)
+}
+
+fn authenticateFarcaster(message, signature) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/authenticate', json.serialize({ message: message, signature: signature }))
+	result := _parseFarcasterResponse(resp)
+	if result.ok -> if result.data.token != ? -> {
+		auth.setToken(result.data.token)
+		auth.setRefreshToken(result.data.refreshToken)
+	}
+	result
+}
+
+fn linkFarcaster(opts) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/link', json.serialize(default(opts, {})))
+	_parseFarcasterResponse(resp)
+}
+
+fn unlinkFarcaster() {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/unlink', json.serialize({}))
+	_parseFarcasterResponse(resp)
+}
+
+// --- Cross-App Accounts ------------------------------------------------------
+
+fn getCrossAppAccounts() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/apps/' + auth._cfg.appId + '/cross-app/connections', ?)
+	_parseFarcasterResponse(resp)
+}
+
+// --- Guest Accounts ----------------------------------------------------------
+
+fn getGuestAccounts() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/guest/accounts', ?)
+	_parseFarcasterResponse(resp)
+}
+
+// --- Internal ----------------------------------------------------------------
+
+fn _parseFarcasterResponse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{
+			ok: true
+			data: data
+			signer: data.signer
+			accounts: data.accounts
+		}
+	}
+	400, 401, 403, 404, 422 -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.message, 'Farcaster operation failed')
+			code: resp.status
+		}
+	}
+	_ -> {
+		ok: false
+		error: 'Unexpected response: ' + string(resp.status)
+		code: resp.status
+	}
+}

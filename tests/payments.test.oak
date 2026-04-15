@@ -1,0 +1,10 @@
+// payments tests — structural (auth required)
+
+payments := import('../payments')
+
+fn run(t) {
+	// payment endpoints need auth; verify structural response
+	result := payments.buildApprove({})
+	'payments: buildApprove returns result' |> t.assert(result != ?)
+	'payments: buildApprove has ok field' |> t.assert(result.ok != ?)
+}

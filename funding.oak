@@ -1,0 +1,168 @@
+// luna-api/funding provides fiat on-ramp and wallet funding operations
+// for the Luna/Privy SDK.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+// --- Funding Methods ---------------------------------------------------------
+
+FundingMethod := {
+	moonpay: :moonpay
+	coinbaseOnramp: :coinbaseOnramp
+	bankDeposit: :bankDeposit
+	externalTransfer: :externalTransfer
+	bridge: :bridge
+}
+
+// --- Fiat On-Ramp ------------------------------------------------------------
+
+fn initFiatOnramp(opts) {
+	body := json.serialize({
+		amount: opts.amount
+		currency: default(opts.currency, 'usd')
+		chainId: opts.chain.id
+		method: string(default(opts.method, FundingMethod.moonpay))
+		walletAddress: opts.walletAddress
+		redirectUrl: opts.redirectUrl
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/fiat-onramp/init', body)
+	_parseFundingResponse(resp)
+}
+
+fn checkOnrampStatus(orderId) {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/fiat-onramp/status/' + string(orderId), ?)
+	_parseFundingResponse(resp)
+}
+
+// --- Coinbase On-Ramp --------------------------------------------------------
+
+fn initCoinbaseOnramp(opts) {
+	body := json.serialize({
+		amount: opts.amount
+		currency: default(opts.currency, 'usd')
+		chainId: opts.chainId
+		walletAddress: opts.walletAddress
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/funding/coinbase_on_ramp/init', body)
+	_parseFundingResponse(resp)
+}
+
+fn checkCoinbaseOnrampStatus(orderId) {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/funding/coinbase_on_ramp/status/' + string(orderId), ?)
+	_parseFundingResponse(resp)
+}
+
+// --- Bridge Operations -------------------------------------------------------
+
+fn initBridge(opts) {
+	body := json.serialize({
+		fromChainId: opts.fromChain.id
+		toChainId: opts.toChain.id
+		token: default(opts.token, '')
+		amount: string(opts.amount)
+		walletAddress: opts.walletAddress
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/bridge/init', body)
+	_parseFundingResponse(resp)
+}
+
+// --- Bank Deposit ------------------------------------------------------------
+
+fn fundWithBankDeposit(opts) {
+	body := json.serialize({
+		amount: opts.amount
+		currency: default(opts.currency, 'usd')
+		walletAddress: opts.walletAddress
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/fund/bank-deposit', body)
+	_parseFundingResponse(resp)
+}
+
+// --- Token Utilities ---------------------------------------------------------
+
+fn getTokenPrice(tokenAddress, chainId) {
+	query := http.queryEncode({ token: tokenAddress, chainId: string(chainId) })
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/tokens/price?' + query, ?)
+	_parseFundingResponse(resp)
+}
+
+fn getErc20Balance(tokenAddress, walletAddress, chainId) {
+	query := http.queryEncode({ token: tokenAddress, wallet: walletAddress, chainId: string(chainId) })
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/tokens/balance?' + query, ?)
+	_parseFundingResponse(resp)
+}
+
+// --- Moonpay -----------------------------------------------------------------
+
+fn signMoonpayUrl(url) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/plugins/moonpay_on_ramp/sign', json.serialize({ url: url }))
+	_parseFundingResponse(resp)
+}
+
+// --- Fiat Customer / Virtual Accounts ----------------------------------------
+
+fn getFiatCustomer() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/fiat/customer', ?)
+	_parseFundingResponse(resp)
+}
+
+fn updateFiatCustomer(fields) {
+	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/fiat/customer', json.serialize(fields))
+	_parseFundingResponse(resp)
+}
+
+fn createVirtualAccount(opts) {
+	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/fiat/customer/virtual_accounts', json.serialize(default(opts, {})))
+	_parseFundingResponse(resp)
+}
+
+// --- Onramp Quotes & Provider ------------------------------------------------
+
+fn getOnrampQuotes(opts) {
+	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/onramp/fiat/quotes', json.serialize(default(opts, {})))
+	_parseFundingResponse(resp)
+}
+
+fn getOnrampProviderSession(opts) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/onramp/fiat/provider_session_url', json.serialize(default(opts, {})))
+	_parseFundingResponse(resp)
+}
+
+fn getOnrampStatus(sessionId) {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/onramp/fiat/status/' + string(sessionId), ?)
+	_parseFundingResponse(resp)
+}
+
+// --- Internal ----------------------------------------------------------------
+
+fn _parseFundingResponse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{
+			ok: true
+			data: data
+			url: data.url
+			orderId: data.orderId
+			status: data.status
+			balance: data.balance
+			price: data.price
+		}
+	}
+	400, 401, 403, 404, 422 -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.message, 'Funding operation failed')
+			code: resp.status
+		}
+	}
+	_ -> {
+		ok: false
+		error: 'Unexpected response: ' + string(resp.status)
+		code: resp.status
+	}
+}

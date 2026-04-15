@@ -1,0 +1,34 @@
+// funding tests — method constants
+
+funding := import('../funding')
+
+fn run(t) {
+	'funding.FundingMethod.moonpay' |> t.eq(
+		funding.FundingMethod.moonpay, :moonpay
+	)
+	'funding.FundingMethod.coinbaseOnramp' |> t.eq(
+		funding.FundingMethod.coinbaseOnramp, :coinbaseOnramp
+	)
+	'funding.FundingMethod.bankDeposit' |> t.eq(
+		funding.FundingMethod.bankDeposit, :bankDeposit
+	)
+	'funding.FundingMethod.bridge' |> t.eq(
+		funding.FundingMethod.bridge, :bridge
+	)
+
+	// New funding functions exist
+	'funding.signMoonpayUrl is fn' |> t.eq(type(funding.signMoonpayUrl), :function)
+	'funding.getFiatCustomer is fn' |> t.eq(type(funding.getFiatCustomer), :function)
+	'funding.updateFiatCustomer is fn' |> t.eq(type(funding.updateFiatCustomer), :function)
+	'funding.createVirtualAccount is fn' |> t.eq(type(funding.createVirtualAccount), :function)
+	'funding.getOnrampQuotes is fn' |> t.eq(type(funding.getOnrampQuotes), :function)
+	'funding.getOnrampProviderSession is fn' |> t.eq(type(funding.getOnrampProviderSession), :function)
+	'funding.getOnrampStatus is fn' |> t.eq(type(funding.getOnrampStatus), :function)
+	'funding.FundingMethod.externalTransfer' |> t.eq(
+		funding.FundingMethod.externalTransfer, :externalTransfer
+	)
+
+	// Coinbase on-ramp functions
+	'funding.initCoinbaseOnramp is fn' |> t.eq(type(funding.initCoinbaseOnramp), :function)
+	'funding.checkCoinbaseOnrampStatus is fn' |> t.eq(type(funding.checkCoinbaseOnrampStatus), :function)
+}

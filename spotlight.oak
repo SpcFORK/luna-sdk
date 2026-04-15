@@ -1,0 +1,48 @@
+// luna-api/spotlight provides spotlight (promoted post) operations for Luna.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// active returns currently active spotlighted posts (no auth required).
+fn active() {
+	raw := req({ method: 'GET', url: _base() + '/spotlight/active', headers: {}, body: '' })
+	resp := if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+	_parse(resp)
+}
+
+// create spotlights a post. Requires a transaction signature as proof of payment.
+//   create({ postId: 42, communityId: 1, txSignature: '...' })
+fn create(opts) {
+	_parse(_req('POST', _base() + '/spotlight', json.serialize(opts)))
+}

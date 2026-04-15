@@ -1,0 +1,9 @@
+// rewards tests — live rewards pool (no auth)
+
+rewards := import('../rewards')
+
+fn run(t) {
+	result := rewards.pool()
+	'live: rewards pool responds' |> t.assert(result != ?)
+	'live: rewards pool has ok field' |> t.assert(result.ok != ?)
+}

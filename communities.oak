@@ -1,0 +1,225 @@
+// luna-api/communities provides community management for the Luna social
+// platform. Communities are groups where users share ideas, trade tokens,
+// and interact.
+//
+// Base URL: https://lunaapi-production.up.railway.app/api/communities/
+//
+// Community shape:
+//   {
+//     id: int, slug: string, name: string, description: string
+//     iconUrl: string|null, bannerUrl: string|null
+//     creatorId: int, isPrivate: bool, isVerified: bool, isHighlighted: bool
+//     tokenMint: string|null, tokenSymbol: string|null
+//     createdAt: string (ISO 8601)
+//     memberCount: int, postCount: int, totalViews: int
+//     tokenSwapCount: int, tokenTotalBought: int
+//     rules: list
+//   }
+
+{
+	default: default
+	map: map
+	each: each
+	filter: filter
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+// --- Internal ----------------------------------------------------------------
+
+fn _lunaBase() auth._cfg.apiBase
+
+fn _lunaReq(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> {
+		headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	}
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parseResponse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{ ok: true, data: data }
+	}
+	204 -> { ok: true, data: ? }
+	400, 401, 403, 404, 422 -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.message, default(data.error, 'Request failed'))
+			code: resp.status
+			data: data
+		}
+	}
+	_ -> {
+		ok: false
+		error: 'Unexpected response: ' + string(resp.status)
+		code: resp.status
+	}
+}
+
+// --- Community CRUD ----------------------------------------------------------
+
+fn get(slug) {
+	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug), ?)
+	_parseResponse(resp)
+}
+
+fn list(opts) {
+	query := http.queryEncode(default(opts, {}))
+	url := _lunaBase() + '/communities'
+	if query != '' -> url <- url + '?' + query
+	resp := _lunaReq('GET', url, ?)
+	_parseResponse(resp)
+}
+
+fn create(opts) {
+	body := json.serialize({
+		name: opts.name
+		slug: opts.slug
+		description: default(opts.description, '')
+		isPrivate: default(opts.isPrivate, false)
+		iconUrl: opts.iconUrl
+		bannerUrl: opts.bannerUrl
+		tokenMint: opts.tokenMint
+		tokenSymbol: opts.tokenSymbol
+	})
+	resp := _lunaReq('POST', _lunaBase() + '/communities', body)
+	_parseResponse(resp)
+}
+
+fn update(slug, fields) {
+	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug), json.serialize(fields))
+	_parseResponse(resp)
+}
+
+fn del(slug) {
+	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug), ?)
+	_parseResponse(resp)
+}
+
+// --- Membership --------------------------------------------------------------
+
+fn join(slug) {
+	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/join', json.serialize({}))
+	_parseResponse(resp)
+}
+
+fn leave(slug) {
+	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/leave', json.serialize({}))
+	_parseResponse(resp)
+}
+
+fn members(slug, opts) {
+	query := http.queryEncode(default(opts, {}))
+	url := _lunaBase() + '/communities/' + string(slug) + '/members'
+	if query != '' -> url <- url + '?' + query
+	resp := _lunaReq('GET', url, ?)
+	_parseResponse(resp)
+}
+
+// --- Posts -------------------------------------------------------------------
+
+fn getPosts(slug, opts) {
+	query := http.queryEncode(default(opts, {}))
+	url := _lunaBase() + '/communities/' + string(slug) + '/posts'
+	if query != '' -> url <- url + '?' + query
+	resp := _lunaReq('GET', url, ?)
+	_parseResponse(resp)
+}
+
+fn createPost(slug, post) {
+	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/posts', json.serialize(post))
+	_parseResponse(resp)
+}
+
+// --- Rules -------------------------------------------------------------------
+
+fn getRules(slug) {
+	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/rules', ?)
+	_parseResponse(resp)
+}
+
+// --- Token/Swap Info ---------------------------------------------------------
+
+fn getTokenInfo(slug) {
+	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/token', ?)
+	_parseResponse(resp)
+}
+
+// --- Helpers -----------------------------------------------------------------
+
+fn verified?(community) community.isVerified = true
+fn highlighted?(community) community.isHighlighted = true
+fn private?(community) community.isPrivate = true
+fn hasToken?(community) community.tokenMint != ? & community.tokenMint != ''
+
+// --- Membership Status -------------------------------------------------------
+
+fn membership(slug) {
+	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/membership', ?)
+	_parseResponse(resp)
+}
+
+// --- Member Role -------------------------------------------------------------
+
+fn setMemberRole(slug, userId, role) {
+	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/members/' + string(userId) + '/role', json.serialize({ role: role }))
+	_parseResponse(resp)
+}
+
+// --- Bans --------------------------------------------------------------------
+
+fn getBans(slug) {
+	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/bans', ?)
+	_parseResponse(resp)
+}
+
+fn ban(slug, userId, reason) {
+	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/bans', json.serialize({ userId: userId, reason: default(reason, '') }))
+	_parseResponse(resp)
+}
+
+fn unban(slug, userId) {
+	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug) + '/bans/' + string(userId), ?)
+	_parseResponse(resp)
+}
+
+// --- Post Moderation ---------------------------------------------------------
+
+fn deletePost(slug, postId) {
+	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug) + '/posts/' + string(postId), ?)
+	_parseResponse(resp)
+}
+
+// --- Verification ------------------------------------------------------------
+
+fn verify(slug, verified) {
+	resp := _lunaReq('PATCH', _lunaBase() + '/communities/' + string(slug) + '/verify', json.serialize({ verified: verified }))
+	_parseResponse(resp)
+}
+
+// --- Rules Update ------------------------------------------------------------
+
+fn updateRules(slug, rules) {
+	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/rules', json.serialize({ rules: rules }))
+	_parseResponse(resp)
+}
+
+// --- Token Update ------------------------------------------------------------
+
+fn updateToken(slug, tokenMint, tokenSymbol) {
+	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/token', json.serialize({ tokenMint: tokenMint, tokenSymbol: tokenSymbol }))
+	_parseResponse(resp)
+}

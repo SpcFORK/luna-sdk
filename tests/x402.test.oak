@@ -1,0 +1,8 @@
+// x402 tests — function availability & basic behavior
+
+x402 := import('../x402')
+
+fn run(t) {
+	'x402.fetch is fn' |> t.eq(type(x402.fetch), :function)
+	'x402.payAndRetry is fn' |> t.eq(type(x402.payAndRetry), :function)
+}

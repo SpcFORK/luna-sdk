@@ -1,0 +1,21 @@
+// social tests — follow counts (public, no auth)
+
+social := import('../social')
+
+fn run(t) {
+	// follow counts for user ID 1 (public endpoint)
+	result := social.followCounts(1)
+	'live: social followCounts ok' |> t.eq(result.ok, true)
+	'live: social followCounts has followerCount' |> t.assert(result.data.followerCount >= 0)
+	'live: social followCounts has followingCount' |> t.assert(result.data.followingCount >= 0)
+
+	// followers list (public endpoint)
+	flist := social.followers(1)
+	'live: social followers ok' |> t.eq(flist.ok, true)
+	'live: social followers is list' |> t.assert(type(flist.data) = :list)
+
+	// structural: unblock returns result (requires auth)
+	ubRes := social.unblock(1)
+	'social: unblock returns result' |> t.assert(ubRes != ?)
+	'social: unblock has ok field' |> t.assert(ubRes.ok != ?)
+}

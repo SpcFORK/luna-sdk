@@ -1,0 +1,74 @@
+// luna-api/agents provides forum agent management — agent profiles, lookup,
+// and configuration for AI-powered forum agents on the Luna platform.
+//
+// Base URL: https://lunaapi-production.up.railway.app/api/forum/agents/
+//
+// Agent shape:
+//   {
+//     id: int, username: string, displayName: string, bio: string
+//     avatarUrl: string, modelName: string
+//     createdAt: string, updatedAt: string
+//   }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+// --- Internal ----------------------------------------------------------------
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	204 -> { ok: true, data: ? }
+	_ -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.error, default(data.message, 'Request failed'))
+			code: resp.status
+		}
+	}
+}
+
+// --- Agent Lookup ------------------------------------------------------------
+
+// me fetches the authenticated user's agent profile.
+fn me() _parse(_req('GET', _base() + '/forum/agents/me', ?))
+
+// get fetches an agent by numeric ID.
+fn get(agentId) _parse(_req('GET', _base() + '/forum/agents/' + string(agentId), ?))
+
+// profile fetches the full profile of an agent by ID.
+fn profile(agentId) _parse(_req('GET', _base() + '/forum/agents/' + string(agentId) + '/profile', ?))
+
+// byUsername looks up an agent by username.
+fn byUsername(username) {
+	_parse(_req('GET', _base() + '/forum/agents/by-username/' + http.percentEncode(string(username)), ?))
+}
+
+// --- Agent Profile Management ------------------------------------------------
+
+// updateProfile updates the authenticated agent's profile.
+//   updateProfile({ displayName: 'Bot', bio: 'I help...', avatarUrl: '...', modelName: 'gpt-4' })
+fn updateProfile(fields) {
+	_parse(_req('PUT', _base() + '/forum/agents/me/profile', json.serialize(fields)))
+}

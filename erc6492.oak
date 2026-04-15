@@ -1,0 +1,144 @@
+// luna-api/erc6492 implements ERC-6492 signature serialization and encoding
+// utilities, abstracting the low-level ABI packing from the JS bundle into
+// idiomatic Oak.
+//
+// ERC-6492 extends EIP-1271 to support signature verification for
+// counterfactual (not-yet-deployed) smart contract wallets.
+
+{
+	default: default
+	slice: slice
+	map: map
+	range: range
+	toHex: toHex
+	fromHex: fromHex
+} := import('std')
+{
+	join: join
+	padStart: padStart
+	padEnd: padEnd
+} := import('str')
+
+// ERC6492_SUFFIX is the magic bytes appended to ERC-6492 wrapped signatures.
+// From EIP-6492: 0x6492649264926492649264926492649264926492649264926492649264926492
+ERC6492_SUFFIX := '6492649264926492649264926492649264926492649264926492649264926492'
+
+// --- ABI Encoding Helpers ----------------------------------------------------
+
+// _padHex pads a hex string to 64 characters (32 bytes) with leading zeros.
+fn _padHex(hex) padStart(hex, 64, '0')
+
+// _encodeAddress encodes an Ethereum address as a 32-byte ABI word.
+fn _encodeAddress(addr) {
+	// Strip '0x' prefix if present
+	raw := if slice(addr, 0, 2) {
+		'0x' -> slice(addr, 2)
+		_ -> addr
+	}
+	_padHex(raw)
+}
+
+// _encodeUint256 encodes an integer as a 32-byte ABI word.
+fn _encodeUint256(n) _padHex(toHex(n))
+
+// _encodeBytesField encodes a dynamic bytes value with offset + length + data.
+fn _encodeBytesField(hexData) {
+	raw := if slice(hexData, 0, 2) {
+		'0x' -> slice(hexData, 2)
+		_ -> hexData
+	}
+	byteLen := len(raw) / 2
+	// Pad data to 32-byte boundary
+	paddedLen := if byteLen % 32 {
+		0 -> len(raw)
+		_ -> len(raw) + (64 - (len(raw) % 64))
+	}
+	{
+		length: _encodeUint256(byteLen)
+		data: padEnd(raw, paddedLen, '0')
+	}
+}
+
+// --- ERC-6492 Serialization --------------------------------------------------
+
+// serializeSignature creates an ERC-6492 wrapped signature.
+//
+// Parameters:
+//   address  - factory/account address (hex string with 0x prefix)
+//   data     - factory calldata for account deployment (hex string)
+//   signature - the inner signature (hex string)
+//
+// Returns a hex string (with 0x prefix) of the packed signature:
+//   abi.encode(address, bytes data, bytes signature) ++ ERC6492_SUFFIX
+fn serializeSignature(address, data, signature) {
+	// Head: 3 words (address, data offset, signature offset)
+	addrWord := _encodeAddress(address)
+
+	dataEnc := _encodeBytesField(data)
+	sigEnc := _encodeBytesField(signature)
+
+	// Data offset: 3 * 32 = 96 bytes = 0x60
+	dataOffset := _encodeUint256(96)
+
+	// Signature offset: 96 + 32 (data length word) + len(data padded)
+	dataSectionLen := 64 + len(dataEnc.data)  // length word (64 hex chars) + padded data
+	sigOffset := _encodeUint256(96 + dataSectionLen / 2)
+
+	'0x' + addrWord +
+		dataOffset +
+		sigOffset +
+		dataEnc.length + dataEnc.data +
+		sigEnc.length + sigEnc.data +
+		ERC6492_SUFFIX
+}
+
+// isErc6492Signature? checks if a hex signature ends with the ERC-6492 suffix.
+fn isErc6492Signature?(sig) {
+	raw := if slice(sig, 0, 2) {
+		'0x' -> slice(sig, 2)
+		_ -> sig
+	}
+	suffixStart := len(raw) - len(ERC6492_SUFFIX)
+	if suffixStart < 0 {
+		true -> false
+		_ -> slice(raw, suffixStart) = ERC6492_SUFFIX
+	}
+}
+
+// unwrapSignature extracts the inner signature from an ERC-6492 wrapped sig.
+// Returns { address, data, signature } or ? if not an ERC-6492 signature.
+fn unwrapSignature(sig) if isErc6492Signature?(sig) {
+	false -> ?
+	_ -> {
+		raw := if slice(sig, 0, 2) {
+			'0x' -> slice(sig, 2)
+			_ -> sig
+		}
+		// Strip suffix
+		body := slice(raw, 0, len(raw) - len(ERC6492_SUFFIX))
+
+		// Decode head: address (word 0), data offset (word 1), sig offset (word 2)
+		addr := '0x' + slice(body, 24, 64)  // last 20 bytes of first word
+
+		// Data section starts at decoded offset
+		dataOffsetHex := slice(body, 64, 128)
+		dataOffset := fromHex(dataOffsetHex) * 2  // byte offset -> hex char offset
+
+		sigOffsetHex := slice(body, 128, 192)
+		sigOffset := fromHex(sigOffsetHex) * 2
+
+		// Read data: length word + data
+		dataLen := fromHex(slice(body, dataOffset, dataOffset + 64)) * 2
+		dataBody := '0x' + slice(body, dataOffset + 64, dataOffset + 64 + dataLen)
+
+		// Read signature: length word + data
+		sigLen := fromHex(slice(body, sigOffset, sigOffset + 64)) * 2
+		sigBody := '0x' + slice(body, sigOffset + 64, sigOffset + 64 + sigLen)
+
+		{
+			address: addr
+			data: dataBody
+			signature: sigBody
+		}
+	}
+}

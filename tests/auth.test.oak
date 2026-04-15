@@ -1,0 +1,77 @@
+// auth tests — configuration & state
+
+auth := import('../auth')
+
+fn run(t) {
+	'auth default apiBase' |> t.eq(
+		auth._cfg.apiBase
+		'https://lunaapi-production.up.railway.app/api'
+	)
+
+	'auth default privyBase' |> t.eq(
+		auth._cfg.privyBase
+		'https://auth.privy.io'
+	)
+
+	auth.configure({ appId: 'test-app-123' })
+	'auth configure sets appId' |> t.eq(auth._cfg.appId, 'test-app-123')
+
+	auth.configure({ clientId: 'client-xyz' })
+	'auth configure sets clientId' |> t.eq(auth._cfg.clientId, 'client-xyz')
+
+	auth.configure({ appId: 'new-app' })
+	'auth configure preserves unset fields' |> t.eq(auth._cfg.clientId, 'client-xyz')
+
+	'auth not authenticated initially' |> t.eq(auth.authenticated?(), false)
+
+	auth.setToken('tok_abc')
+	'auth setToken / getToken roundtrip' |> t.eq(auth.getToken(), 'tok_abc')
+
+	'auth authenticated? after setToken' |> t.eq(auth.authenticated?(), true)
+
+	auth.setToken(?)
+	'auth setToken null clears auth' |> t.eq(auth.authenticated?(), false)
+
+	auth.setRefreshToken('ref_123')
+	'auth setRefreshToken' |> t.eq(auth.getRefreshToken(), 'ref_123')
+	auth.setRefreshToken(?)
+	'auth clearRefreshToken' |> t.eq(auth.getRefreshToken(), ?)
+
+	// Token management accessors
+	auth.setToken('tok_test')
+	'auth getAccessToken returns token' |> t.eq(auth.getAccessToken(), 'tok_test')
+	auth.setToken(?)
+
+	// Function existence checks for new auth flows
+	'auth loginWithSiws is fn' |> t.eq(type(auth.loginWithSiws), :function)
+	'auth verifySmsCode is fn' |> t.eq(type(auth.verifySmsCode), :function)
+	'auth linkSiwe is fn' |> t.eq(type(auth.linkSiwe), :function)
+	'auth unlinkSiwe is fn' |> t.eq(type(auth.unlinkSiwe), :function)
+	'auth linkSiws is fn' |> t.eq(type(auth.linkSiws), :function)
+	'auth unlinkSiws is fn' |> t.eq(type(auth.unlinkSiws), :function)
+	'auth linkEmail is fn' |> t.eq(type(auth.linkEmail), :function)
+	'auth unlinkEmail is fn' |> t.eq(type(auth.unlinkEmail), :function)
+	'auth linkPhone is fn' |> t.eq(type(auth.linkPhone), :function)
+	'auth unlinkPhone is fn' |> t.eq(type(auth.unlinkPhone), :function)
+	'auth linkSmartWallet is fn' |> t.eq(type(auth.linkSmartWallet), :function)
+	'auth acceptTerms is fn' |> t.eq(type(auth.acceptTerms), :function)
+	'auth getIdentityToken is fn' |> t.eq(type(auth.getIdentityToken), :function)
+	'auth refreshAccessToken is fn' |> t.eq(type(auth.refreshAccessToken), :function)
+	'auth getOAuthTokens is fn' |> t.eq(type(auth.getOAuthTokens), :function)
+	'auth getAccessTokenForProvider is fn' |> t.eq(type(auth.getAccessTokenForProvider), :function)
+	'auth updateEmail is fn' |> t.eq(type(auth.updateEmail), :function)
+	'auth updatePhone is fn' |> t.eq(type(auth.updatePhone), :function)
+	'auth mfaInitSms is fn' |> t.eq(type(auth.mfaInitSms), :function)
+	'auth mfaVerifySms is fn' |> t.eq(type(auth.mfaVerifySms), :function)
+
+	// signupWithPasskey
+	'auth signupWithPasskey is fn' |> t.eq(type(auth.signupWithPasskey), :function)
+
+	// New Privy SDK functions
+	'auth initSiwe is fn' |> t.eq(type(auth.initSiwe), :function)
+	'auth initSiws is fn' |> t.eq(type(auth.initSiws), :function)
+	'auth linkTelegram is fn' |> t.eq(type(auth.linkTelegram), :function)
+	'auth unlinkTelegram is fn' |> t.eq(type(auth.unlinkTelegram), :function)
+	'auth initPasskeyLink is fn' |> t.eq(type(auth.initPasskeyLink), :function)
+	'auth mfaEnrollPasskey is fn' |> t.eq(type(auth.mfaEnrollPasskey), :function)
+}

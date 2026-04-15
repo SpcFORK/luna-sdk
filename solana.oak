@@ -1,0 +1,84 @@
+// luna-api/solana provides Solana-specific wallet operations for the Privy SDK.
+//
+// Covers: Solana wallet creation, message signing, and RPC calls via Privy's
+// embedded Solana wallet infrastructure.
+//
+// Solana wallet shape:
+//   {
+//     address: string (base58 public key), chainType: 'solana'
+//     walletClientType: 'privy', walletClient: 'privy'
+//   }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _apiBase() auth._cfg.privyBase
+fn _req(method, url, body) auth._req(method, url, body)
+
+fn _parse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{ ok: true, data: data, wallet: data.wallet }
+	}
+	400, 401, 403, 404, 422 -> {
+		data := json.parse(resp.body)
+		msg := if type(data) {
+			:object -> default(data.message, 'Solana wallet operation failed')
+			_ -> 'Solana wallet operation failed'
+		}
+		{ ok: false, error: msg, code: resp.status, data: data }
+	}
+	_ -> { ok: false, error: 'Unexpected response: ' + string(resp.status), code: resp.status }
+}
+
+// --- Wallet Creation ---------------------------------------------------------
+
+// createWallet creates a new embedded Solana wallet.
+fn createWallet(opts) {
+	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/create', json.serialize(default(opts, {}))))
+}
+
+// createAdditionalWallet creates an additional Solana wallet for the user.
+fn createAdditionalWallet(opts) {
+	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/create-additional', json.serialize(default(opts, {}))))
+}
+
+// --- Signing -----------------------------------------------------------------
+
+// signMessage signs a message with a Solana wallet.
+//   signMessage('hello', { address: 'base58...' })
+fn signMessage(message, opts) {
+	body := json.serialize({ address: default(opts.address, ''), message: message })
+	resp := _req('POST', _apiBase() + '/api/v1/solana/wallets/sign-message', body)
+	if resp.status {
+		200 -> {
+			data := json.parse(resp.body)
+			{ ok: true, signature: data.signature, data: data }
+		}
+		_ -> _parse(resp)
+	}
+}
+
+// signTransaction signs a Solana transaction (serialized base64).
+fn signTransaction(transaction, opts) {
+	body := json.serialize({ address: default(opts.address, ''), transaction: transaction })
+	resp := _req('POST', _apiBase() + '/api/v1/solana/wallets/sign-transaction', body)
+	if resp.status {
+		200 -> {
+			data := json.parse(resp.body)
+			{ ok: true, signedTransaction: data.signedTransaction, data: data }
+		}
+		_ -> _parse(resp)
+	}
+}
+
+// --- RPC ---------------------------------------------------------------------
+
+// rpc sends a JSON-RPC call through a Solana embedded wallet.
+fn rpc(walletAddress, method, params) {
+	body := json.serialize({ address: walletAddress, method: method, params: default(params, []) })
+	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/rpc', body))
+}

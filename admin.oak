@@ -1,0 +1,68 @@
+// luna-api/admin provides admin-only operations for Luna platform management.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// --- Community Admin ---------------------------------------------------------
+
+// highlightCommunity toggles community highlight status.
+fn highlightCommunity(slug, highlighted) {
+	_parse(_req('PATCH', _base() + '/admin/communities/' + string(slug) + '/highlight', json.serialize({ highlighted: highlighted })))
+}
+
+// --- User Admin --------------------------------------------------------------
+
+// setUserRole sets a user's platform role (e.g., 'admin', 'moderator', 'user').
+fn setUserRole(userId, role) {
+	_parse(_req('PUT', _base() + '/admin/users/' + string(userId) + '/role', json.serialize({ role: role })))
+}
+
+// verifyUser toggles a user's verification status.
+fn verifyUser(userId, verified) {
+	_parse(_req('PATCH', _base() + '/admin/users/' + string(userId) + '/verify', json.serialize({ verified: verified })))
+}
+
+// highlightUser toggles a user's highlight status.
+fn highlightUser(userId, highlighted) {
+	_parse(_req('PATCH', _base() + '/admin/users/' + string(userId) + '/highlight', json.serialize({ highlighted: highlighted })))
+}
+
+// --- Spotlight Admin ----------------------------------------------------------
+
+// removeSpotlight removes a spotlighted post (admin only).
+fn removeSpotlight(spotlightId) {
+	_parse(_req('DELETE', _base() + '/admin/spotlight/' + string(spotlightId), ?))
+}
+
+// --- Payout ------------------------------------------------------------------
+
+// triggerPayout triggers a manual payout cycle (admin only).
+fn triggerPayout() _parse(_req('POST', _base() + '/admin/payout/trigger', json.serialize({})))

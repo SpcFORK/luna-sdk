@@ -1,0 +1,125 @@
+// errors tests — error types & validators
+
+errors := import('../errors')
+
+fn run(t) {
+	// PrivyErrorType constants
+	'errors.PrivyErrorType.error' |> t.eq(errors.PrivyErrorType.error, 'error')
+	'errors.PrivyErrorType.mfaTimeout' |> t.eq(errors.PrivyErrorType.mfaTimeout, 'mfa_timeout')
+	'errors.PrivyErrorType.missingOrInvalidMfa' |> t.eq(
+		errors.PrivyErrorType.missingOrInvalidMfa
+		'missing_or_invalid_mfa'
+	)
+	'errors.PrivyErrorType.mfaVerificationMaxAttempts' |> t.eq(
+		errors.PrivyErrorType.mfaVerificationMaxAttempts
+		'mfa_verification_max_attempts_reached'
+	)
+	'errors.PrivyErrorType.walletNotOnDevice' |> t.eq(
+		errors.PrivyErrorType.walletNotOnDevice
+		'wallet_not_on_device'
+	)
+	'errors.PrivyErrorType.invalidRecoveryPin' |> t.eq(
+		errors.PrivyErrorType.invalidRecoveryPin
+		'invalid_recovery_pin'
+	)
+	'errors.PrivyErrorType.insufficientFunds' |> t.eq(
+		errors.PrivyErrorType.insufficientFunds
+		'insufficient_funds'
+	)
+	'errors.PrivyErrorType.twilioVerificationFailed' |> t.eq(
+		errors.PrivyErrorType.twilioVerificationFailed
+		'twilio_verification_failed'
+	)
+
+	'errors.AllErrorTypes has 9 entries' |> t.eq(len(errors.AllErrorTypes), 9)
+
+	// isPrivyError?
+	'errors.isPrivyError? true for mfa_timeout' |> t.eq(
+		errors.isPrivyError?({ type: 'mfa_timeout' })
+		true
+	)
+	'errors.isPrivyError? true for error' |> t.eq(
+		errors.isPrivyError?({ type: 'error' })
+		true
+	)
+	'errors.isPrivyError? false for unknown' |> t.eq(
+		errors.isPrivyError?({ type: 'unknown_error' })
+		false
+	)
+	'errors.isPrivyError? false for null' |> t.eq(
+		errors.isPrivyError?(?)
+		false
+	)
+	'errors.isPrivyError? false for no type' |> t.eq(
+		errors.isPrivyError?({ code: 500 })
+		false
+	)
+
+	// errorIndicatesMfaTimeout
+	'errors.errorIndicatesMfaTimeout true' |> t.eq(
+		errors.errorIndicatesMfaTimeout({ type: 'mfa_timeout' })
+		true
+	)
+	'errors.errorIndicatesMfaTimeout false for other' |> t.eq(
+		errors.errorIndicatesMfaTimeout({ type: 'error' })
+		false
+	)
+	'errors.errorIndicatesMfaTimeout false for null' |> t.eq(
+		errors.errorIndicatesMfaTimeout(?)
+		false
+	)
+
+	// errorIndicatesMfaVerificationFailed
+	'errors.errorIndicatesMfaVerificationFailed true' |> t.eq(
+		errors.errorIndicatesMfaVerificationFailed({ type: 'missing_or_invalid_mfa' })
+		true
+	)
+	'errors.errorIndicatesMfaVerificationFailed false' |> t.eq(
+		errors.errorIndicatesMfaVerificationFailed({ type: 'mfa_timeout' })
+		false
+	)
+
+	// errorIndicatesMaxMfaRetries
+	'errors.errorIndicatesMaxMfaRetries true' |> t.eq(
+		errors.errorIndicatesMaxMfaRetries({ type: 'mfa_verification_max_attempts_reached' })
+		true
+	)
+	'errors.errorIndicatesMaxMfaRetries false' |> t.eq(
+		errors.errorIndicatesMaxMfaRetries({ type: 'error' })
+		false
+	)
+
+	// errorIndicatesWalletNotOnDevice
+	'errors.errorIndicatesWalletNotOnDevice true' |> t.eq(
+		errors.errorIndicatesWalletNotOnDevice({ type: 'wallet_not_on_device' })
+		true
+	)
+	'errors.errorIndicatesWalletNotOnDevice false' |> t.eq(
+		errors.errorIndicatesWalletNotOnDevice({ type: 'error' })
+		false
+	)
+
+	// errorIndicatesInvalidRecoveryPin matches both types
+	'errors.errorIndicatesInvalidRecoveryPin true for pin' |> t.eq(
+		errors.errorIndicatesInvalidRecoveryPin({ type: 'invalid_recovery_pin' })
+		true
+	)
+	'errors.errorIndicatesInvalidRecoveryPin true for args' |> t.eq(
+		errors.errorIndicatesInvalidRecoveryPin({ type: 'invalid_request_arguments' })
+		true
+	)
+	'errors.errorIndicatesInvalidRecoveryPin false' |> t.eq(
+		errors.errorIndicatesInvalidRecoveryPin({ type: 'error' })
+		false
+	)
+
+	// errorIndicatesInsufficientFunds
+	'errors.errorIndicatesInsufficientFunds true' |> t.eq(
+		errors.errorIndicatesInsufficientFunds({ type: 'insufficient_funds' })
+		true
+	)
+	'errors.errorIndicatesInsufficientFunds false' |> t.eq(
+		errors.errorIndicatesInsufficientFunds({ type: 'error' })
+		false
+	)
+}

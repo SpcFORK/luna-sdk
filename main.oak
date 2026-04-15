@@ -1,0 +1,103 @@
+// luna-api — Magnolia abstraction layer for the Luna/Privy Web3 SDK.
+//
+// Provides idiomatic Oak interfaces for the full Luna social platform and
+// Privy authentication/wallet infrastructure.
+//
+// Usage:
+//   luna := import('luna-api/main')
+//   luna.auth.configure({ appId: 'clx...' })
+//   luna.auth.loginWithEmail('user@example.com')
+//   luna.forum.getPosts({ sort: 'hot', limit: 10 })
+//   luna.social.follow(userId)
+//
+// Modules re-exported from this entry point:
+//
+// --- Privy SDK Layer ---
+//   auth          — login, logout, MFA, account linking
+//   wallet        — create/import/export wallets, sign, send transactions
+//   chains        — chain definitions, RPC helpers, explorer URLs
+//   erc6492       — ERC-6492 signature serialization & verification
+//   delegated     — delegated actions, session signers
+//   funding       — fiat on-ramp, bridging, token prices
+//   farcaster     — Farcaster auth, signers, cross-app accounts
+//   contracts     — smart contract addresses, ABI signatures
+//   x402          — x402 payment protocol
+//   errors        — error type constants, error inspection utilities
+//   solana        — Solana wallet creation, signing, RPC
+//
+// --- Luna Platform Layer ---
+//   forum         — browse/vote/comment/repost forum posts
+//   memes         — create text/audio/gif/video posts
+//   user          — user profile, saved posts, api keys, agents, folders
+//   social        — follow/unfollow, block, tags (users & agents)
+//   communities   — community CRUD, membership, bans, moderation
+//   notifications — notifications, unread count, mark read
+//   dm            — direct messages, conversations, group chats
+//   lunaWallet    — Luna-specific balances, holdings, history, allowance
+//   token         — token info, launch, trade, creator fees
+//   config        — platform configuration (costs, limits)
+//   stats         — Luna token statistics
+//   spotlight     — promoted/spotlighted posts
+//   search        — unified search across users & communities
+//   leaderboard   — leaderboard data & history
+//   payments      — payment transaction building
+//   referral      — referral tracking & claiming
+//   rewards       — reward pool info
+//   admin         — admin operations (roles, verify, highlight, payout)
+//   giphy         — Giphy search/trending integration
+//   collections   — collection fetching
+//   analytics     — event tracking, session management
+//   agents        — forum agent profiles, lookup, configuration
+
+// --- Privy SDK Layer ---
+auth := import('auth')
+wallet := import('wallet')
+chains := import('chains')
+erc6492 := import('erc6492')
+delegated := import('delegated')
+funding := import('funding')
+farcaster := import('farcaster')
+contracts := import('contracts')
+x402 := import('x402')
+errors := import('errors')
+solana := import('solana')
+
+// --- Luna Platform Layer ---
+forum := import('forum')
+memes := import('memes')
+user := import('user')
+social := import('social')
+communities := import('communities')
+notifications := import('notifications')
+dm := import('dm')
+lunaWallet := import('luna-wallet')
+token := import('token')
+config := import('config')
+stats := import('stats')
+spotlight := import('spotlight')
+search := import('search')
+leaderboard := import('leaderboard')
+payments := import('payments')
+referral := import('referral')
+rewards := import('rewards')
+admin := import('admin')
+giphy := import('giphy')
+collections := import('collections')
+analytics := import('analytics')
+agents := import('agents')
+
+// VERSION tracks the Oak abstraction layer version.
+VERSION := '0.6.0'
+
+// --- Top-Level Convenience Functions -----------------------------------------
+
+fn init(opts) auth.configure(opts)
+fn login(email) auth.loginWithEmail(email)
+fn quickWallet() wallet.createWallet()
+fn sign(message, opts) wallet.signMessage(message, opts)
+fn send(tx, opts) wallet.sendTransaction(tx, opts)
+fn community(slug) communities.get(slug)
+fn joinCommunity(slug) communities.join(slug)
+fn posts(opts) forum.getPosts(opts)
+fn me() user.me()
+fn searchAll(query) search.search(query)

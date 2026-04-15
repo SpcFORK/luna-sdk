@@ -1,0 +1,9 @@
+// spotlight tests — live active spotlights (no auth)
+
+spotlight := import('../spotlight')
+
+fn run(t) {
+	result := spotlight.active()
+	'live: spotlight active ok' |> t.eq(result.ok, true)
+	'live: spotlight active is list' |> t.assert(type(result.data) = :list)
+}

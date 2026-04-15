@@ -1,0 +1,147 @@
+// chains tests — definitions & lookups
+
+str := import('str')
+chains := import('../chains')
+
+fn run(t) {
+	'chains.ethereum has correct id' |> t.eq(chains.ethereum.id, 1)
+	'chains.ethereum name' |> t.eq(chains.ethereum.name, 'Ethereum')
+	'chains.ethereum nativeCurrency symbol' |> t.eq(
+		chains.ethereum.nativeCurrency.symbol
+		'ETH'
+	)
+
+	'chains.base has correct id' |> t.eq(chains.base.id, 8453)
+	'chains.baseSepolia has correct id' |> t.eq(chains.baseSepolia.id, 84532)
+	'chains.sepolia has correct id' |> t.eq(chains.sepolia.id, 11155111)
+	'chains.polygon has correct id' |> t.eq(chains.polygon.id, 137)
+	'chains.arbitrum has correct id' |> t.eq(chains.arbitrum.id, 42161)
+	'chains.optimism has correct id' |> t.eq(chains.optimism.id, 10)
+
+	'chains.solana id is atom' |> t.eq(chains.solana.id, :solana)
+	'chains.solanaDevnet id is atom' |> t.eq(chains.solanaDevnet.id, :solanaDevnet)
+	'chains.solana nativeCurrency is SOL' |> t.eq(
+		chains.solana.nativeCurrency.symbol
+		'SOL'
+	)
+
+	'chains.arbitrumSepolia has correct id' |> t.eq(chains.arbitrumSepolia.id, 421614)
+	'chains.optimismSepolia has correct id' |> t.eq(chains.optimismSepolia.id, 11155420)
+	'chains.avalanche has correct id' |> t.eq(chains.avalanche.id, 43114)
+	'chains.avalancheFuji has correct id' |> t.eq(chains.avalancheFuji.id, 43113)
+	'chains.bsc has correct id' |> t.eq(chains.bsc.id, 56)
+	'chains.celo has correct id' |> t.eq(chains.celo.id, 42220)
+	'chains.celoAlfajores has correct id' |> t.eq(chains.celoAlfajores.id, 44787)
+	'chains.filecoin has correct id' |> t.eq(chains.filecoin.id, 314)
+	'chains.holesky has correct id' |> t.eq(chains.holesky.id, 17000)
+	'chains.linea has correct id' |> t.eq(chains.linea.id, 59144)
+	'chains.zora has correct id' |> t.eq(chains.zora.id, 7777777)
+	'chains.zoraSepolia has correct id' |> t.eq(chains.zoraSepolia.id, 999999999)
+	'chains.polygonAmoy has correct id' |> t.eq(chains.polygonAmoy.id, 80002)
+	'chains.immutableZkEvm has correct id' |> t.eq(chains.immutableZkEvm.id, 13371)
+	'chains.redstone has correct id' |> t.eq(chains.redstone.id, 690)
+	'chains.unichain has correct id' |> t.eq(chains.unichain.id, 130)
+	'chains.berachainArtio has correct id' |> t.eq(chains.berachainArtio.id, 80085)
+	'chains.garnetHolesky has correct id' |> t.eq(chains.garnetHolesky.id, 17069)
+	'chains.gunzMainnet has correct id' |> t.eq(chains.gunzMainnet.id, 43419)
+
+	'chains.bsc nativeCurrency symbol' |> t.eq(chains.bsc.nativeCurrency.symbol, 'BNB')
+	'chains.avalanche nativeCurrency symbol' |> t.eq(chains.avalanche.nativeCurrency.symbol, 'AVAX')
+
+	'chains.SUPPORTED_CHAINS has 28 entries' |> t.eq(
+		len(chains.SUPPORTED_CHAINS)
+		28
+	)
+
+	'chains.byId finds ethereum' |> t.eq(
+		chains.byId(1).name
+		'Ethereum'
+	)
+
+	'chains.byId finds base' |> t.eq(
+		chains.byId(8453).name
+		'Base'
+	)
+
+	'chains.byId finds avalanche' |> t.eq(
+		chains.byId(43114).name
+		'Avalanche'
+	)
+
+	'chains.byId finds zora' |> t.eq(
+		chains.byId(7777777).name
+		'Zora'
+	)
+
+	'chains.byId returns ? for unknown' |> t.eq(
+		chains.byId(888888)
+		?
+	)
+
+	'chains.byName finds Polygon' |> t.eq(
+		chains.byName('Polygon').id
+		137
+	)
+
+	'chains.byName returns ? for unknown' |> t.eq(
+		chains.byName('FakeChain')
+		?
+	)
+
+	'chains.isEvm? true for ethereum' |> t.eq(
+		chains.isEvm?(chains.ethereum)
+		true
+	)
+
+	'chains.isEvm? false for solana' |> t.eq(
+		chains.isEvm?(chains.solana)
+		false
+	)
+
+	'chains.isSolana? true for solana' |> t.eq(
+		chains.isSolana?(chains.solana)
+		true
+	)
+
+	'chains.isSolana? true for solanaDevnet' |> t.eq(
+		chains.isSolana?(chains.solanaDevnet)
+		true
+	)
+
+	'chains.isSolana? false for ethereum' |> t.eq(
+		chains.isSolana?(chains.ethereum)
+		false
+	)
+
+	'chains.getRpcUrl returns default' |> t.eq(
+		chains.getRpcUrl(chains.base)
+		'https://mainnet.base.org'
+	)
+
+	overridden := chains.addRpcOverride(chains.ethereum, 'https://custom.rpc.io')
+	'chains.addRpcOverride adds privyWalletOverride' |> t.eq(
+		chains.getRpcUrl(overridden)
+		'https://custom.rpc.io'
+	)
+
+	withPrivy := chains.addPrivyRpc(chains.base)
+	'chains.addPrivyRpc adds coinbase rpc' |> t.eq(
+		chains.getRpcUrl(withPrivy)
+		'https://rpc.wallet.coinbase.com'
+	)
+
+	'chains.getExplorerUrl default is address' |> t.eq(
+		chains.getExplorerUrl(chains.ethereum, '0xabc')
+		'https://etherscan.io/address/0xabc'
+	)
+
+	'chains.getExplorerUrl tx kind' |> t.eq(
+		chains.getExplorerUrl(chains.base, '0xdef', :tx)
+		'https://basescan.org/tx/0xdef'
+	)
+
+	'chains.getExplorerUrl block kind' |> t.eq(
+		chains.getExplorerUrl(chains.polygon, '12345', :block)
+		'https://polygonscan.com/block/12345'
+	)
+}

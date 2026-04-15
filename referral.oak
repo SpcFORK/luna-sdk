@@ -1,0 +1,56 @@
+// luna-api/referral provides referral tracking and claiming for Luna.
+//
+// Referral stats shape:
+//   { totalReferrals: int, totalEarned: int, pendingEarnings: int }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// claim claims pending referral rewards.
+fn claim() _parse(_req('POST', _base() + '/referral/claim', json.serialize({})))
+
+// stats returns referral statistics.
+fn stats() _parse(_req('GET', _base() + '/referral/stats', ?))
+
+// history returns referral history with optional pagination.
+//   history()
+//   history({ cursor: '...', limit: 20 })
+fn history(opts) {
+	o := default(opts, {})
+	params := {}
+	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
+	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
+	query := http.queryEncode(params)
+	url := _base() + '/referral/history'
+	if query != '' -> url <- url + '?' + query
+	_parse(_req('GET', url, ?))
+}

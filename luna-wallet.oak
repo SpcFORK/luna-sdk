@@ -1,0 +1,70 @@
+// luna-api/luna-wallet provides Luna-specific wallet operations:
+// balance checking, holdings, transaction history, allowance, and deposit sync.
+//
+// These are distinct from the Privy wallet module (wallet.oak) which manages
+// embedded wallet creation/signing. This module queries Luna's own ledger.
+//
+// Balances shape:
+//   { address: string, balances: { sol: number, usdc: number, token: number }, tokenMint: string }
+// History entry shape:
+//   { event: string, action: string, amountCents: int, tokenAmount: int, createdAt: string, postId: int|null, txSignature: string|null }
+// Allowance shape:
+//   { allowanceUsdc: int, balanceUsdc: int, delegateSet: bool }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// --- Balances ----------------------------------------------------------------
+
+// balances returns SOL, USDC, and LUNA token balances for an address.
+fn balances(address) {
+	_parse(_req('GET', _base() + '/wallet/balances/' + string(address), ?))
+}
+
+// holdings returns token holdings for an address.
+fn holdings(address) {
+	_parse(_req('GET', _base() + '/wallet/holdings/' + string(address), ?))
+}
+
+// --- History -----------------------------------------------------------------
+
+// history returns the authenticated user's transaction history.
+fn history() _parse(_req('GET', _base() + '/wallet/history', ?))
+
+// --- Allowance ---------------------------------------------------------------
+
+// allowance returns the user's USDC allowance and delegate status.
+fn allowance() _parse(_req('GET', _base() + '/wallet/allowance', ?))
+
+// --- Sync --------------------------------------------------------------------
+
+// syncDeposits triggers a deposit sync for the authenticated user.
+fn syncDeposits() _parse(_req('POST', _base() + '/wallet/sync-deposits', json.serialize({})))

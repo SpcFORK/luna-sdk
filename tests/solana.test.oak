@@ -1,0 +1,15 @@
+// solana tests — structural tests for Solana wallet operations
+
+solana := import('../solana')
+
+fn run(t) {
+	// createWallet requires auth — verify structured response
+	result := solana.createWallet()
+	'solana: createWallet returns result' |> t.assert(result != ?)
+	'solana: createWallet has ok field' |> t.assert(result.ok != ?)
+
+	// signMessage requires auth
+	signRes := solana.signMessage('test', { address: '' })
+	'solana: signMessage returns result' |> t.assert(signRes != ?)
+	'solana: signMessage has ok field' |> t.assert(signRes.ok != ?)
+}

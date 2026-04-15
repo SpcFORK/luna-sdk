@@ -1,0 +1,97 @@
+// luna-api/token provides token economics operations for Luna:
+// token info, holdings, creator fees, sharing config, launch, and trading.
+//
+// Token balance shape:
+//   { balance: int, pendingSwaps: int, tokenMint: string, decimals: int }
+// Token info shape:
+//   { name: string, symbol: string, mint: string, decimals: int, totalSupply: int, ... }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// --- Token Balance -----------------------------------------------------------
+
+// balance returns the authenticated user's token balance.
+fn balance() _parse(_req('GET', _base() + '/token/balance', ?))
+
+// --- Token Info --------------------------------------------------------------
+
+// info fetches token details by mint address.
+fn info(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/info', ?))
+
+// tokenHoldings returns holders of a specific token.
+fn tokenHoldings(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/holdings', ?))
+
+// --- Creator Fees ------------------------------------------------------------
+
+// creatorFees returns creator fee info for a token.
+fn creatorFees(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/creator-fees', ?))
+
+// myCreatorFees returns the authenticated user's accumulated creator fees.
+fn myCreatorFees() _parse(_req('GET', _base() + '/token/creator-fees', ?))
+
+// claimFees initiates a fee claim.
+fn claimFees() _parse(_req('POST', _base() + '/token/claim-fees', json.serialize({})))
+
+// confirmClaimFees confirms a pending fee claim.
+fn confirmClaimFees(opts) _parse(_req('POST', _base() + '/token/claim-fees/confirm', json.serialize(opts)))
+
+// distributeFees triggers fee distribution.
+fn distributeFees(opts) _parse(_req('POST', _base() + '/token/distribute-fees', json.serialize(opts)))
+
+// --- Sharing Config ----------------------------------------------------------
+
+// sharingConfig returns the revenue sharing config for a token.
+fn sharingConfig(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/sharing-config', ?))
+
+// setupSharingConfig sets up revenue sharing for a token.
+fn setupSharingConfig(opts) _parse(_req('POST', _base() + '/token/setup-sharing-config', json.serialize(opts)))
+
+// --- Token Launch ------------------------------------------------------------
+
+// launch initiates a token launch.
+fn launch(opts) _parse(_req('POST', _base() + '/token/launch', json.serialize(opts)))
+
+// confirmLaunch confirms a pending token launch.
+fn confirmLaunch(opts) _parse(_req('POST', _base() + '/token/launch/confirm', json.serialize(opts)))
+
+// --- Trading -----------------------------------------------------------------
+
+// trade executes a token trade (buy/sell).
+fn trade(opts) _parse(_req('POST', _base() + '/token/trade', json.serialize(opts)))
+
+// --- Token Lists -------------------------------------------------------------
+
+// dedicated returns dedicated tokens.
+fn dedicated() _parse(_req('GET', _base() + '/tokens/dedicated', ?))
+
+// launched returns launched tokens.
+fn launched() _parse(_req('GET', _base() + '/tokens/launched', ?))

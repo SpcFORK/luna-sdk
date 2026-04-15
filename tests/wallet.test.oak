@@ -1,0 +1,65 @@
+// wallet tests — state management
+
+wallet := import('../wallet')
+
+fn run(t) {
+	'wallet.wallets starts empty' |> t.eq(wallet.wallets(), [])
+	'wallet.activeWallet starts null' |> t.eq(wallet.activeWallet(), ?)
+
+	w := { address: '0xtest', type: :embedded }
+	wallet.setActiveWallet(w)
+	'wallet.setActiveWallet / activeWallet roundtrip' |> t.eq(
+		wallet.activeWallet().address
+		'0xtest'
+	)
+
+	'wallet.WalletType.embedded' |> t.eq(wallet.WalletType.embedded, :embedded)
+	'wallet.WalletType.external' |> t.eq(wallet.WalletType.external, :external)
+	'wallet.WalletType.coinbaseSmart' |> t.eq(
+		wallet.WalletType.coinbaseSmart
+		:coinbaseSmart
+	)
+
+	// New wallet functions exist
+	'wallet.migrateWallets is fn' |> t.eq(type(wallet.migrateWallets), :function)
+	'wallet.initOAuthRecovery is fn' |> t.eq(type(wallet.initOAuthRecovery), :function)
+	'wallet.authenticateOAuthRecovery is fn' |> t.eq(type(wallet.authenticateOAuthRecovery), :function)
+	'wallet.initICloudRecovery is fn' |> t.eq(type(wallet.initICloudRecovery), :function)
+	'wallet.configureICloudRecovery is fn' |> t.eq(type(wallet.configureICloudRecovery), :function)
+	'wallet.getRecoveryKeyMaterial is fn' |> t.eq(type(wallet.getRecoveryKeyMaterial), :function)
+	'wallet.getSmartWallets is fn' |> t.eq(type(wallet.getSmartWallets), :function)
+	'wallet.getEmbeddedWallet is fn' |> t.eq(type(wallet.getEmbeddedWallet), :function)
+	'wallet.revokeWallet is fn' |> t.eq(type(wallet.revokeWallet), :function)
+	'wallet.getWallet is fn' |> t.eq(type(wallet.getWallet), :function)
+	'wallet.updateWallet is fn' |> t.eq(type(wallet.updateWallet), :function)
+	'wallet.walletRpc is fn' |> t.eq(type(wallet.walletRpc), :function)
+
+	// getEmbeddedWallet returns null when no wallets
+	'wallet.getEmbeddedWallet returns ? when empty' |> t.eq(wallet.getEmbeddedWallet(), ?)
+
+	// getEmbeddedConnectedWallet
+	'wallet.getEmbeddedConnectedWallet is fn' |> t.eq(type(wallet.getEmbeddedConnectedWallet), :function)
+	'wallet.getEmbeddedConnectedWallet returns ? when empty' |> t.eq(
+		wallet.getEmbeddedConnectedWallet([])
+		?
+	)
+	privyWallet := { address: '0xprivy', walletClientType: 'privy' }
+	externalWallet := { address: '0xext', walletClientType: 'metamask' }
+	'wallet.getEmbeddedConnectedWallet finds privy wallet' |> t.eq(
+		wallet.getEmbeddedConnectedWallet([externalWallet, privyWallet]).address
+		'0xprivy'
+	)
+	'wallet.getEmbeddedConnectedWallet skips non-privy' |> t.eq(
+		wallet.getEmbeddedConnectedWallet([externalWallet])
+		?
+	)
+
+	// toViemAccount
+	'wallet.toViemAccount is fn' |> t.eq(type(wallet.toViemAccount), :function)
+	account := wallet.toViemAccount({ address: '0xTest123' })
+	'wallet.toViemAccount address' |> t.eq(account.address, '0xTest123')
+	'wallet.toViemAccount type is local' |> t.eq(account.type, 'local')
+	'wallet.toViemAccount has signMessage fn' |> t.eq(type(account.signMessage), :function)
+	'wallet.toViemAccount has signTransaction fn' |> t.eq(type(account.signTransaction), :function)
+	'wallet.toViemAccount has signTypedData fn' |> t.eq(type(account.signTypedData), :function)
+}

@@ -1,0 +1,9 @@
+// memes tests — url resolve (read-only, no auth needed)
+
+memes := import('../memes')
+
+fn run(t) {
+	// resolveUrl is a read-only endpoint
+	result := memes.resolveUrl('https://example.com')
+	'live: memes resolveUrl responds' |> t.assert(result.ok != ?)
+}

@@ -1,0 +1,100 @@
+// luna-api/delegated provides delegated actions and session signer management
+// for the Luna/Privy SDK. Delegated actions allow third-party services to
+// perform wallet operations on behalf of users with scoped permissions.
+
+{
+	default: default
+	map: map
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+// --- Delegated Actions -------------------------------------------------------
+
+fn requestDelegation(address, opts) {
+	body := json.serialize({
+		address: address
+		permissions: default(opts.permissions, [])
+		expiresAt: opts.expiresAt
+		delegatee: opts.delegatee
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/request', body)
+	_parseDelegationResponse(resp)
+}
+
+fn approveDelegation(delegationId) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/approve', json.serialize({ delegationId: delegationId }))
+	_parseDelegationResponse(resp)
+}
+
+fn revokeDelegation(delegationId) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/revoke', json.serialize({ delegationId: delegationId }))
+	_parseDelegationResponse(resp)
+}
+
+fn listDelegations() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/delegated-actions', ?)
+	_parseDelegationResponse(resp)
+}
+
+// --- Session Signers ---------------------------------------------------------
+
+fn createSessionSigner(opts) {
+	body := json.serialize({
+		permissions: default(opts.permissions, [:signMessage])
+		expiresInSeconds: default(opts.expiresInSeconds, 3600)
+		chainIds: opts.chainIds
+		walletAddress: opts.walletAddress
+	})
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/create', body)
+	_parseSessionResponse(resp)
+}
+
+fn revokeSessionSigner(sessionId) {
+	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/revoke', json.serialize({ sessionId: sessionId }))
+	_parseSessionResponse(resp)
+}
+
+fn listSessionSigners() {
+	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/session-signers', ?)
+	_parseSessionResponse(resp)
+}
+
+// --- Internal ----------------------------------------------------------------
+
+fn _parseDelegationResponse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{
+			ok: true
+			data: data
+			delegations: default(data.delegations, [])
+		}
+	}
+	400, 401, 403, 404, 422 -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.message, 'Delegation operation failed')
+			code: resp.status
+		}
+	}
+	_ -> {
+		ok: false
+		error: 'Unexpected response: ' + string(resp.status)
+		code: resp.status
+	}
+}
+
+fn _parseSessionResponse(resp) if resp.status {
+	200, 201 -> {
+		data := json.parse(resp.body)
+		{
+			ok: true
+			data: data
+			sessions: default(data.sessions, [])
+			signer: data.signer
+		}
+	}
+	_ -> _parseDelegationResponse(resp)
+}

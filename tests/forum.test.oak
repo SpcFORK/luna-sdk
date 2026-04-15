@@ -1,0 +1,53 @@
+// forum tests — live API fetch of forum posts
+
+forum := import('../forum')
+
+fn run(t) {
+	// live: fetch newest posts
+	result := forum.getPosts({ sort: 'new', limit: 5 })
+	'live: forum getPosts ok' |> t.eq(result.ok, true)
+	'live: forum posts data exists' |> t.assert(result.data != ?)
+
+	// live: fetch hot posts
+	hot := forum.getPosts({ sort: 'hot', limit: 5 })
+	'live: forum hot posts ok' |> t.eq(hot.ok, true)
+
+	// live: fetch audio posts
+	audio := forum.getPosts({ sort: 'audio', limit: 5 })
+	'live: forum audio posts ok' |> t.eq(audio.ok, true)
+
+	// live: tokenless posts (no token gate)
+	tokenless := forum.tokenlessPosts({ limit: 5 })
+	'live: forum tokenlessPosts returns result' |> t.assert(tokenless != ?)
+	'live: forum tokenlessPosts has ok field' |> t.assert(tokenless.ok != ?)
+
+	// structural: vote returns result (requires auth)
+	voteRes := forum.vote(1)
+	'forum: vote returns result' |> t.assert(voteRes != ?)
+	'forum: vote has ok field' |> t.assert(voteRes.ok != ?)
+
+	// structural: voteComment returns result
+	vcRes := forum.voteComment(1)
+	'forum: voteComment returns result' |> t.assert(vcRes != ?)
+	'forum: voteComment has ok field' |> t.assert(vcRes.ok != ?)
+
+	// structural: createComment returns result (requires auth)
+	ccRes := forum.createComment(1, 'test')
+	'forum: createComment returns result' |> t.assert(ccRes != ?)
+	'forum: createComment has ok field' |> t.assert(ccRes.ok != ?)
+
+	// structural: impressions returns result
+	impRes := forum.impressions([{ postId: 1, position: 0, sortMode: 'new' }])
+	'forum: impressions returns result' |> t.assert(impRes != ?)
+	'forum: impressions has ok field' |> t.assert(impRes.ok != ?)
+
+	// structural: deletePost returns result (requires auth)
+	delRes := forum.deletePost(999999)
+	'forum: deletePost returns result' |> t.assert(delRes != ?)
+	'forum: deletePost has ok field' |> t.assert(delRes.ok != ?)
+
+	// structural: flag with reason
+	flagRes := forum.flag(999999, 'spam')
+	'forum: flag returns result' |> t.assert(flagRes != ?)
+	'forum: flag has ok field' |> t.assert(flagRes.ok != ?)
+}

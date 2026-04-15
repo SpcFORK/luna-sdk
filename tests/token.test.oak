@@ -1,0 +1,18 @@
+// token tests — live balance & token lists
+
+token := import('../token')
+
+fn run(t) {
+	// token info for the Luna token mint
+	result := token.info('4NBTf8PfLH4oLFnwf3knv46FY9i5oXjDxffCetXRpump')
+	'live: token info responds' |> t.assert(result != ?)
+	'live: token info has ok field' |> t.assert(result.ok != ?)
+
+	// dedicated tokens list
+	ded := token.dedicated()
+	'live: token dedicated responds' |> t.assert(ded != ?)
+
+	// launched tokens list
+	launched := token.launched()
+	'live: token launched responds' |> t.assert(launched != ?)
+}

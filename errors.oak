@@ -1,0 +1,68 @@
+// luna-api/errors provides error type constants and error-inspection utilities
+// matching the Privy SDK's exported error helpers.
+
+// --- Error Types -------------------------------------------------------------
+
+// PrivyErrorType enumerates all known Privy SDK error type strings.
+PrivyErrorType := {
+	error: 'error'
+	invalidRequestArguments: 'invalid_request_arguments'
+	walletNotOnDevice: 'wallet_not_on_device'
+	invalidRecoveryPin: 'invalid_recovery_pin'
+	insufficientFunds: 'insufficient_funds'
+	missingOrInvalidMfa: 'missing_or_invalid_mfa'
+	mfaVerificationMaxAttempts: 'mfa_verification_max_attempts_reached'
+	mfaTimeout: 'mfa_timeout'
+	twilioVerificationFailed: 'twilio_verification_failed'
+}
+
+// AllErrorTypes is the ordered list of all known error type strings.
+AllErrorTypes := [
+	'error'
+	'invalid_request_arguments'
+	'wallet_not_on_device'
+	'invalid_recovery_pin'
+	'insufficient_funds'
+	'missing_or_invalid_mfa'
+	'mfa_verification_max_attempts_reached'
+	'mfa_timeout'
+	'twilio_verification_failed'
+]
+
+// --- Error Validators --------------------------------------------------------
+
+// isPrivyError? checks whether an error object has a valid Privy error type.
+fn isPrivyError?(err) if err {
+	? -> false
+	_ -> if type(err.type) {
+		:string -> {
+			fn go(i) if i {
+				len(AllErrorTypes) -> false
+				_ -> if AllErrorTypes.(i) {
+					err.type -> true
+					_ -> go(i + 1)
+				}
+			}
+			go(0)
+		}
+		_ -> false
+	}
+}
+
+// errorIndicatesMfaTimeout returns true if error type is mfa_timeout.
+fn errorIndicatesMfaTimeout(err) isPrivyError?(err) & err.type = 'mfa_timeout'
+
+// errorIndicatesMfaVerificationFailed returns true if error type is missing_or_invalid_mfa.
+fn errorIndicatesMfaVerificationFailed(err) isPrivyError?(err) & err.type = 'missing_or_invalid_mfa'
+
+// errorIndicatesMaxMfaRetries returns true if error type is mfa_verification_max_attempts_reached.
+fn errorIndicatesMaxMfaRetries(err) isPrivyError?(err) & err.type = 'mfa_verification_max_attempts_reached'
+
+// errorIndicatesWalletNotOnDevice returns true if error type is wallet_not_on_device.
+fn errorIndicatesWalletNotOnDevice(err) isPrivyError?(err) & err.type = 'wallet_not_on_device'
+
+// errorIndicatesInvalidRecoveryPin returns true if error type is invalid_recovery_pin or invalid_request_arguments.
+fn errorIndicatesInvalidRecoveryPin(err) isPrivyError?(err) & (err.type = 'invalid_recovery_pin' | err.type = 'invalid_request_arguments')
+
+// errorIndicatesInsufficientFunds returns true if error type is insufficient_funds.
+fn errorIndicatesInsufficientFunds(err) isPrivyError?(err) & err.type = 'insufficient_funds'

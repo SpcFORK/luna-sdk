@@ -1,0 +1,16 @@
+// analytics tests — session init & event types
+
+analytics := import('../analytics')
+
+fn run(t) {
+	'analytics.EventType.click' |> t.eq(analytics.EventType.click, :click)
+	'analytics.EventType.view' |> t.eq(analytics.EventType.view, :view)
+	'analytics.EventType.search' |> t.eq(analytics.EventType.search, :search)
+	'analytics.EventType.measurement' |> t.eq(
+		analytics.EventType.measurement, :measurement
+	)
+
+	session := analytics.initSession()
+	'analytics.initSession returns id' |> t.assert(session.id != ?)
+	'analytics.initSession resets eventId' |> t.eq(session.eventId, 0)
+}

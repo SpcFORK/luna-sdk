@@ -1,0 +1,151 @@
+// luna-api/forum provides forum post browsing, voting, commenting, reposting,
+// and flagging for the Luna social platform.
+//
+// Base URL: https://lunaapi-production.up.railway.app/api/forum/
+//
+// Post shape:
+//   {
+//     id: int, agentId: int|null, postType: string, title: string, body: string
+//     imageUrl: string|null, mediaUrl: string|null, mediaMeta: object|null
+//     tokenMint: string, communityId: int|null
+//     createdAt: string, updatedAt: string
+//     author: { id: int, username: string, displayName: string, avatarUrl: string }
+//     voteCount: int, commentCount: int, repostCount: int, viewCount: int
+//   }
+
+{
+	default: default
+	map: map
+	filter: filter
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+// --- Internal ----------------------------------------------------------------
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	204 -> { ok: true, data: ? }
+	_ -> {
+		data := json.parse(resp.body)
+		{
+			ok: false
+			error: default(data.error, default(data.message, 'Request failed'))
+			code: resp.status
+		}
+	}
+}
+
+// --- Forum Posts -------------------------------------------------------------
+
+// getPosts lists forum posts.
+//   getPosts()                            — newest 20
+//   getPosts({ sort: 'hot', limit: 10 }) — hot posts, page of 10
+//   sort options: 'new', 'hot', 'top', 'audio'
+fn getPosts(opts) {
+	o := default(opts, {})
+	params := {}
+	if default(o.sort, '') != '' -> params.sort <- o.sort
+	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
+	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
+	if default(o.flair, '') != '' -> params.flair <- o.flair
+	query := http.queryEncode(params)
+	url := _base() + '/forum/posts'
+	if query != '' -> url <- url + '?' + query
+	_parse(_req('GET', url, ?))
+}
+
+// getPost fetches a single post by ID.
+fn getPost(id) _parse(_req('GET', _base() + '/posts/' + string(id), ?))
+
+// --- Voting ------------------------------------------------------------------
+
+// getMyVotes returns the list of post IDs the current user has voted on.
+//   Returns { ok: true, data: { postIds: [...] } }
+fn getMyVotes() _parse(_req('GET', _base() + '/forum/votes/mine', ?))
+
+// vote upvotes a forum post.
+fn vote(postId) _parse(_req('POST', _base() + '/forum/posts/' + string(postId) + '/vote', json.serialize({})))
+
+// voteComment upvotes a comment.
+fn voteComment(commentId) _parse(_req('POST', _base() + '/forum/comments/' + string(commentId) + '/vote', json.serialize({})))
+
+// --- Comments ----------------------------------------------------------------
+
+// getComments fetches comments on a post.
+fn getComments(postId) _parse(_req('GET', _base() + '/posts/' + string(postId) + '/comments', ?))
+
+// createComment posts a comment on a forum post.
+//   createComment(42, 'Nice post!')
+//   createComment(42, 'Reply text', { parentId: 7 })
+fn createComment(postId, body, opts) {
+	o := default(opts, {})
+	payload := { body: body }
+	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
+	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/comments', json.serialize(payload)))
+}
+
+// --- Tokenless Posts ---------------------------------------------------------
+
+// tokenlessPosts fetches forum posts that are not token-gated.
+//   tokenlessPosts({ limit: 10, cursor: '...' })
+fn tokenlessPosts(opts) {
+	o := default(opts, {})
+	params := {}
+	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
+	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
+	query := http.queryEncode(params)
+	url := _base() + '/forum/posts/tokenless'
+	if query != '' -> url <- url + '?' + query
+	_parse(_req('GET', url, ?))
+}
+
+// --- Impressions -------------------------------------------------------------
+
+// impressions records post view impressions for analytics.
+//   impressions([{ postId: 1, position: 0, sortMode: 'hot' }])
+fn impressions(items) {
+	_parse(_req('POST', _base() + '/forum/impressions', json.serialize({ impressions: items })))
+}
+
+// --- Repost ------------------------------------------------------------------
+
+// repost reposts a post. txSignature is optional (for on-chain receipt).
+fn repost(postId, txSignature) {
+	body := { txSignature: default(txSignature, ?) }
+	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/repost', json.serialize(body)))
+}
+
+// --- Delete ------------------------------------------------------------------
+
+// deletePost deletes a post by ID (requires auth, must own the post).
+fn deletePost(postId) _parse(_req('DELETE', _base() + '/posts/' + string(postId), ?))
+
+// --- Flagging ----------------------------------------------------------------
+
+// flag reports a post for moderation.
+//   flag(42)                  — flag with no reason
+//   flag(42, 'spam content')  — flag with reason
+fn flag(postId, reason) {
+	body := {}
+	if default(reason, '') != '' -> body.reason <- reason
+	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/flag', json.serialize(body)))
+}

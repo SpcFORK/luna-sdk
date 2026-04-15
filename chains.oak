@@ -1,0 +1,362 @@
+// luna-api/chains provides chain definitions and RPC helpers for supported
+// EVM and Solana chains used by the Luna/Privy SDK.
+
+{
+	default: default
+	map: map
+	filter: filter
+	entries: entries
+	fromEntries: fromEntries
+	values: values
+} := import('std')
+
+// --- Well-Known Chains -------------------------------------------------------
+
+ethereum := {
+	id: 1
+	name: 'Ethereum'
+	network: 'mainnet'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://eth.llamarpc.com'] } }
+	blockExplorers: { default: { name: 'Etherscan', url: 'https://etherscan.io' } }
+}
+
+sepolia := {
+	id: 11155111
+	name: 'Sepolia'
+	network: 'sepolia'
+	nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.sepolia.org'] } }
+	blockExplorers: { default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' } }
+}
+
+base := {
+	id: 8453
+	name: 'Base'
+	network: 'base'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://mainnet.base.org'] } }
+	blockExplorers: { default: { name: 'BaseScan', url: 'https://basescan.org' } }
+}
+
+baseSepolia := {
+	id: 84532
+	name: 'Base Sepolia'
+	network: 'base-sepolia'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://sepolia.base.org'] } }
+	blockExplorers: { default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' } }
+}
+
+polygon := {
+	id: 137
+	name: 'Polygon'
+	network: 'polygon'
+	nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }
+	rpcUrls: { default: { http: ['https://polygon-rpc.com'] } }
+	blockExplorers: { default: { name: 'PolygonScan', url: 'https://polygonscan.com' } }
+}
+
+arbitrum := {
+	id: 42161
+	name: 'Arbitrum One'
+	network: 'arbitrum'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://arb1.arbitrum.io/rpc'] } }
+	blockExplorers: { default: { name: 'Arbiscan', url: 'https://arbiscan.io' } }
+}
+
+optimism := {
+	id: 10
+	name: 'Optimism'
+	network: 'optimism'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://mainnet.optimism.io'] } }
+	blockExplorers: { default: { name: 'Optimistic Etherscan', url: 'https://optimistic.etherscan.io' } }
+}
+
+solana := {
+	id: :solana
+	name: 'Solana'
+	network: 'solana-mainnet'
+	nativeCurrency: { name: 'SOL', symbol: 'SOL', decimals: 9 }
+	rpcUrls: { default: { http: ['https://api.mainnet-beta.solana.com'] } }
+	blockExplorers: { default: { name: 'Solana Explorer', url: 'https://explorer.solana.com' } }
+}
+
+solanaDevnet := {
+	id: :solanaDevnet
+	name: 'Solana Devnet'
+	network: 'solana-devnet'
+	nativeCurrency: { name: 'SOL', symbol: 'SOL', decimals: 9 }
+	rpcUrls: { default: { http: ['https://api.devnet.solana.com'] } }
+	blockExplorers: { default: { name: 'Solana Explorer', url: 'https://explorer.solana.com?cluster=devnet' } }
+}
+
+arbitrumSepolia := {
+	id: 421614
+	name: 'Arbitrum Sepolia'
+	network: 'arbitrum-sepolia'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://sepolia-rollup.arbitrum.io/rpc'] } }
+	blockExplorers: { default: { name: 'Blockscout', url: 'https://sepolia-explorer.arbitrum.io' } }
+	testnet: true
+}
+
+optimismSepolia := {
+	id: 11155420
+	name: 'Optimism Sepolia'
+	network: 'optimism-sepolia'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://sepolia.optimism.io'] } }
+	blockExplorers: { default: { name: 'Blockscout', url: 'https://optimism-sepolia.blockscout.com' } }
+	testnet: true
+}
+
+avalanche := {
+	id: 43114
+	name: 'Avalanche'
+	network: 'avalanche'
+	nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 }
+	rpcUrls: { default: { http: ['https://api.avax.network/ext/bc/C/rpc'] } }
+	blockExplorers: { default: { name: 'SnowTrace', url: 'https://snowtrace.io' } }
+}
+
+avalancheFuji := {
+	id: 43113
+	name: 'Avalanche Fuji'
+	network: 'avalanche-fuji'
+	nativeCurrency: { name: 'Avalanche Fuji', symbol: 'AVAX', decimals: 18 }
+	rpcUrls: { default: { http: ['https://api.avax-test.network/ext/bc/C/rpc'] } }
+	blockExplorers: { default: { name: 'SnowTrace', url: 'https://testnet.snowtrace.io' } }
+	testnet: true
+}
+
+bsc := {
+	id: 56
+	name: 'Binance Smart Chain'
+	network: 'bsc'
+	nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }
+	rpcUrls: { default: { http: ['https://56.rpc.thirdweb.com'] } }
+	blockExplorers: { default: { name: 'BscScan', url: 'https://bscscan.com' } }
+}
+
+celo := {
+	id: 42220
+	name: 'Celo'
+	network: 'celo'
+	nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 }
+	rpcUrls: { default: { http: ['https://forno.celo.org'] } }
+	blockExplorers: { default: { name: 'CeloScan', url: 'https://celoscan.io' } }
+}
+
+celoAlfajores := {
+	id: 44787
+	name: 'Celo Alfajores'
+	network: 'celo-alfajores'
+	nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 }
+	rpcUrls: { default: { http: ['https://alfajores-forno.celo-testnet.org'] } }
+	blockExplorers: { default: { name: 'CeloScan', url: 'https://alfajores.celoscan.io' } }
+	testnet: true
+}
+
+filecoin := {
+	id: 314
+	name: 'Filecoin'
+	network: 'filecoin-mainnet'
+	nativeCurrency: { name: 'filecoin', symbol: 'FIL', decimals: 18 }
+	rpcUrls: { default: { http: ['https://api.node.glif.io/rpc/v1'] } }
+	blockExplorers: { default: { name: 'Filfox', url: 'https://filfox.info/en' } }
+}
+
+holesky := {
+	id: 17000
+	name: 'Holesky'
+	network: 'holesky'
+	nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://ethereum-holesky.publicnode.com'] } }
+	blockExplorers: { default: { name: 'Etherscan', url: 'https://holesky.etherscan.io' } }
+	testnet: true
+}
+
+linea := {
+	id: 59144
+	name: 'Linea'
+	network: 'linea-mainnet'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.linea.build'] } }
+	blockExplorers: { default: { name: 'Etherscan', url: 'https://lineascan.build' } }
+}
+
+zora := {
+	id: 7777777
+	name: 'Zora'
+	network: 'zora'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.zora.energy'] } }
+	blockExplorers: { default: { name: 'Explorer', url: 'https://explorer.zora.energy' } }
+}
+
+zoraSepolia := {
+	id: 999999999
+	name: 'Zora Sepolia'
+	network: 'zora-sepolia'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://sepolia.rpc.zora.energy'] } }
+	blockExplorers: { default: { name: 'Zora Sepolia Explorer', url: 'https://sepolia.explorer.zora.energy' } }
+	testnet: true
+}
+
+polygonAmoy := {
+	id: 80002
+	name: 'Polygon Amoy'
+	network: 'polygon-amoy'
+	nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc-amoy.polygon.technology'] } }
+	blockExplorers: { default: { name: 'OK LINK', url: 'https://www.oklink.com/amoy' } }
+	testnet: true
+}
+
+immutableZkEvm := {
+	id: 13371
+	name: 'Immutable zkEVM'
+	network: 'immutable-zkevm'
+	nativeCurrency: { name: 'Immutable Coin', symbol: 'IMX', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.immutable.com'] } }
+	blockExplorers: { default: { name: 'Immutable Explorer', url: 'https://explorer.immutable.com' } }
+}
+
+redstone := {
+	id: 690
+	name: 'Redstone'
+	network: 'redstone'
+	nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.redstonechain.com'] } }
+	blockExplorers: { default: { name: 'Blockscout', url: 'https://explorer.redstone.xyz' } }
+}
+
+unichain := {
+	id: 130
+	name: 'Unichain'
+	network: 'unichain'
+	nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://mainnet.unichain.org'] } }
+	blockExplorers: { default: { name: 'Uniscan', url: 'https://uniscan.xyz' } }
+}
+
+berachainArtio := {
+	id: 80085
+	name: 'Berachain Artio'
+	network: 'berachain-artio'
+	nativeCurrency: { name: 'BERA', symbol: 'BERA', decimals: 18 }
+	rpcUrls: { default: { http: ['https://berachain-artio.rpc.privy.systems'] } }
+	blockExplorers: { default: { name: 'Beratrail', url: 'https://artio.beratrail.io' } }
+	testnet: true
+}
+
+garnetHolesky := {
+	id: 17069
+	name: 'Garnet Holesky'
+	network: 'garnet-holesky'
+	nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.garnetchain.com'] } }
+	blockExplorers: { default: { name: 'Blockscout', url: 'https://explorer.garnetchain.com' } }
+	testnet: true
+}
+
+gunzMainnet := {
+	id: 43419
+	name: 'Gunz Mainnet'
+	network: 'gunz'
+	nativeCurrency: { name: 'GUN', symbol: 'GUN', decimals: 18 }
+	rpcUrls: { default: { http: ['https://rpc.gunzchain.io/ext/bc/2M47TxWHGnhNtq6pM5zPXdATBtuqubxn5EPFgFmEawCQr9WFML/rpc'] } }
+	blockExplorers: { default: { name: 'Gunz Explorer', url: 'https://gunzscan.io' } }
+}
+
+// SUPPORTED_CHAINS is the registry of all known chains.
+SUPPORTED_CHAINS := [
+	ethereum, sepolia, holesky
+	base, baseSepolia
+	polygon, polygonAmoy
+	arbitrum, arbitrumSepolia
+	optimism, optimismSepolia
+	avalanche, avalancheFuji
+	bsc
+	celo, celoAlfajores
+	filecoin
+	linea
+	zora, zoraSepolia
+	immutableZkEvm
+	redstone
+	unichain
+	berachainArtio
+	garnetHolesky
+	gunzMainnet
+	solana, solanaDevnet
+]
+
+// --- Chain Lookup ------------------------------------------------------------
+
+// byId returns the chain definition for a given chain ID, or ? if not found.
+fn byId(chainId) {
+	fn go(i) if i {
+		len(SUPPORTED_CHAINS) -> ?
+		_ -> if SUPPORTED_CHAINS.(i).id {
+			chainId -> SUPPORTED_CHAINS.(i)
+			_ -> go(i + 1)
+		}
+	}
+	go(0)
+}
+
+// byName returns the chain definition for a given chain name.
+fn byName(name) {
+	fn go(i) if i {
+		len(SUPPORTED_CHAINS) -> ?
+		_ -> if SUPPORTED_CHAINS.(i).name {
+			name -> SUPPORTED_CHAINS.(i)
+			_ -> go(i + 1)
+		}
+	}
+	go(0)
+}
+
+// --- RPC Helpers -------------------------------------------------------------
+
+// addRpcOverride returns a new chain object with a Privy RPC URL override.
+fn addRpcOverride(chain, rpcUrl) {
+	newRpcUrls := chain.rpcUrls
+	newRpcUrls.privyWalletOverride <- { http: [rpcUrl] }
+	result := chain
+	result.rpcUrls <- newRpcUrls
+	result
+}
+
+// addPrivyRpc adds the default Privy wallet RPC endpoint to a chain.
+fn addPrivyRpc(chain) {
+	addRpcOverride(chain, 'https://rpc.wallet.coinbase.com')
+}
+
+// getRpcUrl retrieves the primary RPC URL for a chain.
+fn getRpcUrl(chain) if chain.rpcUrls.privyWalletOverride {
+	? -> chain.rpcUrls.default.http.0
+	_ -> chain.rpcUrls.privyWalletOverride.http.0
+}
+
+// isEvm? returns true if the chain is an EVM chain (numeric ID).
+fn isEvm?(chain) type(chain.id) = :int
+
+// isSolana? returns true if the chain is a Solana chain.
+fn isSolana?(chain) chain.id = :solana | chain.id = :solanaDevnet
+
+// getExplorerUrl builds a block explorer URL for an address or tx hash.
+fn getExplorerUrl(chain, hashOrAddress, kind) {
+	baseUrl := chain.blockExplorers.default.url
+	prefix := if default(kind, :address) {
+		:address -> '/address/'
+		:tx -> '/tx/'
+		:block -> '/block/'
+		_ -> '/address/'
+	}
+	baseUrl + prefix + string(hashOrAddress)
+}

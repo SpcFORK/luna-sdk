@@ -1,0 +1,49 @@
+// contracts tests — addresses & ABI
+
+str := import('str')
+contracts := import('../contracts')
+
+fn run(t) {
+	'contracts.AccountImplementation starts with 0x' |> t.assert(
+		str.startsWith?(contracts.AccountImplementation, '0x')
+	)
+
+	'contracts.Factory starts with 0x' |> t.assert(
+		str.startsWith?(contracts.Factory, '0x')
+	)
+
+	'contracts.AccountABI has execute' |> t.eq(
+		contracts.AccountABI.execute
+		'execute(address,uint256,bytes)'
+	)
+
+	'contracts.FactoryABI has createAccount' |> t.eq(
+		contracts.FactoryABI.createAccount
+		'createAccount(bytes[],uint256)'
+	)
+
+	'contracts.BaseAccountSDK name' |> t.eq(
+		contracts.BaseAccountSDK.name
+		'@base-org/account'
+	)
+
+	'contracts.BaseAccountSDK version' |> t.eq(
+		contracts.BaseAccountSDK.version
+		'1.1.1'
+	)
+
+	'contracts.CoinbaseRpcUrl' |> t.eq(
+		contracts.CoinbaseRpcUrl
+		'https://rpc.wallet.coinbase.com'
+	)
+
+	'contracts.dataSuffix exists' |> t.eq(
+		contracts.dataSuffix != ?
+		true
+	)
+
+	'contracts.dataSuffix has description' |> t.eq(
+		type(contracts.dataSuffix.description)
+		:string
+	)
+}

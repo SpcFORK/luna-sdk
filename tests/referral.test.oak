@@ -1,0 +1,9 @@
+// referral tests — structural (auth required)
+
+referral := import('../referral')
+
+fn run(t) {
+	result := referral.stats()
+	'referral: stats returns result' |> t.assert(result != ?)
+	'referral: stats has ok field' |> t.assert(result.ok != ?)
+}

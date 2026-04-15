@@ -1,0 +1,86 @@
+// luna-api/memes provides post creation endpoints for the Luna social platform.
+// In Luna, "memes" are the atomic content units — text posts, audio, gifs, videos.
+//
+// Base URL: https://lunaapi-production.up.railway.app/api/memes/
+//
+// All creation endpoints accept form-encoded data (the Oak req() builtin
+// sends the body string as-is, so callers should construct the appropriate
+// payload). Auth token is required for write operations.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	204 -> { ok: true, data: ? }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// --- Post Creation -----------------------------------------------------------
+
+// createTextPost creates a text-only post.
+//   createTextPost({ title: '...', body: '...', communityId: 1, txSignature: '...' })
+fn createTextPost(opts) {
+	_parse(_req('POST', _base() + '/memes/text', json.serialize(opts)))
+}
+
+// createAudioPost creates an audio post.
+fn createAudioPost(opts) {
+	_parse(_req('POST', _base() + '/memes/audio', json.serialize(opts)))
+}
+
+// createGifPost creates a GIF post.
+fn createGifPost(opts) {
+	_parse(_req('POST', _base() + '/memes/gif', json.serialize(opts)))
+}
+
+// createVideoPost creates a video post.
+fn createVideoPost(opts) {
+	_parse(_req('POST', _base() + '/memes/video', json.serialize(opts)))
+}
+
+// --- Meme Metadata -----------------------------------------------------------
+
+// getMediaMeta fetches media metadata for a post.
+fn getMediaMeta(postId) {
+	_parse(_req('GET', _base() + '/memes/' + string(postId) + '/media-meta', ?))
+}
+
+// getFolder gets the folder a meme belongs to.
+fn getFolder(postId) {
+	_parse(_req('GET', _base() + '/memes/' + string(postId) + '/folder', ?))
+}
+
+// save bookmarks a meme/post.
+fn save(postId) {
+	_parse(_req('POST', _base() + '/memes/' + string(postId) + '/save', json.serialize({})))
+}
+
+// resolveUrl resolves an external URL to preview metadata.
+fn resolveUrl(url) {
+	_parse(_req('GET', _base() + '/memes/resolve-url?url=' + http.percentEncode(url), ?))
+}

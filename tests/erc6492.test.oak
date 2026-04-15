@@ -1,0 +1,56 @@
+// erc6492 tests — encoding & detection
+
+str := import('str')
+erc6492 := import('../erc6492')
+
+fn run(t) {
+	'erc6492.ERC6492_SUFFIX is 64 hex chars' |> t.eq(
+		len(erc6492.ERC6492_SUFFIX)
+		64
+	)
+
+	'erc6492._padHex pads to 64 chars' |> t.eq(
+		len(erc6492._padHex('ff'))
+		64
+	)
+
+	'erc6492._padHex preserves value' |> t.assert(
+		str.endsWith?(erc6492._padHex('ff'), 'ff')
+	)
+
+	encAddr := erc6492._encodeAddress('0x1234567890abcdef1234567890abcdef12345678')
+	'erc6492._encodeAddress len = 64' |> t.eq(len(encAddr), 64)
+
+	'erc6492.isErc6492Signature? false for short sig' |> t.eq(
+		erc6492.isErc6492Signature?('0xabcdef')
+		false
+	)
+
+	'erc6492.isErc6492Signature? false for random sig' |> t.eq(
+		erc6492.isErc6492Signature?('0x' + erc6492._padHex('aa') + erc6492._padHex('bb'))
+		false
+	)
+
+	wrapped := erc6492.serializeSignature(
+		'0x1111111111111111111111111111111111111111'
+		'0xdeadbeef'
+		'0xabcdef'
+	)
+	'erc6492 serialize then detect roundtrip' |> t.assert(
+		erc6492.isErc6492Signature?(wrapped)
+	)
+
+	wrapped2 := erc6492.serializeSignature(
+		'0x0000000000000000000000000000000000000001'
+		'0x00'
+		'0xff'
+	)
+	'erc6492 serialize starts with 0x' |> t.assert(
+		str.startsWith?(wrapped2, '0x')
+	)
+
+	'erc6492 unwrap returns ? for non-6492 sig' |> t.eq(
+		erc6492.unwrapSignature('0xdeadbeef')
+		?
+	)
+}

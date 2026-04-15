@@ -1,0 +1,10 @@
+// dm tests — structural check (auth required endpoints)
+
+dm := import('../dm')
+
+fn run(t) {
+	// Without auth, conversations endpoint returns error or empty
+	result := dm.conversations()
+	'dm: conversations returns result' |> t.assert(result != ?)
+	'dm: conversations has ok field' |> t.assert(result.ok != ?)
+}

@@ -1,0 +1,9 @@
+// giphy tests — live trending (no auth, proxied through Luna API)
+
+giphy := import('../giphy')
+
+fn run(t) {
+	result := giphy.trending({ limit: 5 })
+	'live: giphy trending responds' |> t.assert(result != ?)
+	'live: giphy trending has ok field' |> t.assert(result.ok != ?)
+}

@@ -1,0 +1,78 @@
+// luna-api/analytics provides event tracking for the Luna/Privy SDK.
+// Based on the analytics patterns found in the JS bundle:
+//   POST /api/v1/analytics_events
+
+{
+	default: default
+	map: map
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+// --- Event Types -------------------------------------------------------------
+
+EventType := {
+	click: :click
+	view: :view
+	hover: :hover
+	focus: :focus
+	scroll: :scroll
+	search: :search
+	select: :select
+	dismiss: :dismiss
+	blur: :blur
+	change: :change
+	move: :move
+	process: :process
+	render: :render
+	keyPress: :keyPress
+	measurement: :measurement
+}
+
+// --- Session State -----------------------------------------------------------
+
+_session := {
+	id: ?
+	eventId: 0
+	startTime: 0
+}
+
+// initSession starts a new analytics session.
+fn initSession() {
+	_session.id <- string(rand())
+	_session.eventId <- 0
+	_session.startTime <- nanotime() / 1000000
+	_session
+}
+
+// --- Event Tracking ----------------------------------------------------------
+
+fn track(eventType, properties) {
+	_session.eventId <- _session.eventId + 1
+	body := json.serialize({
+		eventType: string(eventType)
+		eventId: _session.eventId
+		sessionId: _session.id
+		timestamp: nanotime() / 1000000
+		properties: default(properties, {})
+	})
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/analytics_events', body)
+}
+
+fn trackView(screen, properties) {
+	props := default(properties, {})
+	props.screen <- screen
+	track(EventType.view, props)
+}
+
+fn trackClick(element, properties) {
+	props := default(properties, {})
+	props.element <- element
+	track(EventType.click, props)
+}
+
+fn trackSearch(query, properties) {
+	props := default(properties, {})
+	props.query <- query
+	track(EventType.search, props)
+}

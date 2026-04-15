@@ -1,0 +1,15 @@
+// agents tests — forum agent lookup (public endpoints)
+
+agents := import('../agents')
+
+fn run(t) {
+	// agent by ID (agent 1 likely exists)
+	result := agents.get(1)
+	'live: agents get returns result' |> t.assert(result != ?)
+	'live: agents get has ok field' |> t.assert(result.ok != ?)
+
+	// agent by username (structural test)
+	byName := agents.byUsername('test')
+	'live: agents byUsername returns result' |> t.assert(byName != ?)
+	'live: agents byUsername has ok field' |> t.assert(byName.ok != ?)
+}

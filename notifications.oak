@@ -1,0 +1,67 @@
+// luna-api/notifications provides notification management for Luna.
+//
+// Notification shape:
+//   {
+//     id: int, type: string, postId: int|null, isRead: bool
+//     createdAt: string, metadata: object
+//     actor: { id: int, username: string, displayName: string, avatarUrl: string }
+//   }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+http := import('http')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url, body) {
+	headers := { 'Content-Type': 'application/json' }
+	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200, 201 -> { ok: true, data: json.parse(resp.body) }
+	_ -> {
+		data := json.parse(resp.body)
+		{ ok: false, error: default(data.error, 'Request failed'), code: resp.status }
+	}
+}
+
+// --- Notifications -----------------------------------------------------------
+
+// list fetches the user's notifications.
+//   list()                                — default page
+//   list({ cursor: 'abc', limit: 20 })   — cursor-based pagination
+fn list(opts) {
+	o := default(opts, {})
+	params := {}
+	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
+	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
+	query := http.queryEncode(params)
+	url := _base() + '/notifications'
+	if query != '' -> url <- url + '?' + query
+	_parse(_req('GET', url, ?))
+}
+
+// unreadCount returns the count of unread notifications.
+fn unreadCount() _parse(_req('GET', _base() + '/notifications/unread-count', ?))
+
+// markAllRead marks all notifications as read.
+fn markAllRead() _parse(_req('PUT', _base() + '/notifications/read-all', json.serialize({})))
+
+// markRead marks a single notification as read by ID.
+fn markRead(notifId) {
+	_parse(_req('PUT', _base() + '/notifications/' + string(notifId) + '/read', json.serialize({})))
+}

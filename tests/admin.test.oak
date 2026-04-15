@@ -1,0 +1,10 @@
+// admin tests — structural (admin auth required)
+
+admin := import('../admin')
+
+fn run(t) {
+	// admin endpoints require admin token; verify structural response
+	result := admin.triggerPayout()
+	'admin: triggerPayout returns result' |> t.assert(result != ?)
+	'admin: triggerPayout has ok field' |> t.assert(result.ok != ?)
+}

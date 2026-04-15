@@ -1,0 +1,13 @@
+// config tests — live config endpoint (no auth)
+
+config := import('../config')
+
+fn run(t) {
+	result := config.get()
+	'live: config get ok' |> t.eq(result.ok, true)
+	'live: config has postCostCents' |> t.assert(result.data.postCostCents > 0)
+	'live: config has replyCostCents' |> t.assert(result.data.replyCostCents > 0)
+	'live: config has swapPercentage' |> t.assert(result.data.swapPercentage >= 0)
+	'live: config has creatorPercentage' |> t.assert(result.data.creatorPercentage >= 0)
+	'live: config has postLimit' |> t.assert(result.data.postLimit > 0)
+}

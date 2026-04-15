@@ -1,0 +1,15 @@
+// farcaster tests — function availability
+
+farcaster := import('../farcaster')
+
+fn run(t) {
+	'farcaster.loginWithFarcaster is fn' |> t.eq(type(farcaster.loginWithFarcaster), :function)
+	'farcaster.getFarcasterSigner is fn' |> t.eq(type(farcaster.getFarcasterSigner), :function)
+	'farcaster.createFarcasterSigner is fn' |> t.eq(type(farcaster.createFarcasterSigner), :function)
+	'farcaster.checkFarcasterStatus is fn' |> t.eq(type(farcaster.checkFarcasterStatus), :function)
+	'farcaster.authenticateFarcaster is fn' |> t.eq(type(farcaster.authenticateFarcaster), :function)
+	'farcaster.linkFarcaster is fn' |> t.eq(type(farcaster.linkFarcaster), :function)
+	'farcaster.unlinkFarcaster is fn' |> t.eq(type(farcaster.unlinkFarcaster), :function)
+	'farcaster.getCrossAppAccounts is fn' |> t.eq(type(farcaster.getCrossAppAccounts), :function)
+	'farcaster.getGuestAccounts is fn' |> t.eq(type(farcaster.getGuestAccounts), :function)
+}

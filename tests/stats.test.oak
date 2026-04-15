@@ -1,0 +1,11 @@
+// stats tests — live Luna stats (no auth)
+
+stats := import('../stats')
+
+fn run(t) {
+	result := stats.luna()
+	'live: stats luna ok' |> t.eq(result.ok, true)
+	'live: stats has tokenMint' |> t.eq(result.data.tokenMint, '4NBTf8PfLH4oLFnwf3knv46FY9i5oXjDxffCetXRpump')
+	'live: stats has totalSwaps' |> t.assert(result.data.totalSwaps >= 0)
+	'live: stats has totalLunaBought' |> t.assert(result.data.totalLunaBought >= 0)
+}

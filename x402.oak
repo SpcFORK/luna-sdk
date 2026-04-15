@@ -1,0 +1,103 @@
+// luna-api/x402 provides HTTP 402 payment protocol support.
+//
+// x402 enables per-request payment flows where a server responds with
+// HTTP 402 (Payment Required) and the client automatically negotiates
+// payment via a wallet signature.
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+// --- X402 Fetch --------------------------------------------------------------
+
+// fetch makes an HTTP request with x402 payment support.
+// If the server responds with 402, the payment details are returned
+// for the caller to sign and resubmit.
+//
+//  result := x402.fetch(url, { method: 'GET' })
+//  if result.paymentRequired -> {
+//      // sign result.paymentHeader and retry
+//  }
+fn fetch(url, opts) {
+	method := default(if opts != ? -> opts.method, 'GET')
+	headers := default(if opts != ? -> opts.headers, {})
+	body := if opts != ? -> opts.body
+	headers.'Content-Type' <- default(headers.'Content-Type', 'application/json')
+	headers.'Accept-Payment' <- 'true'
+	if auth.getToken() != ? -> {
+		headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	}
+	raw := req({
+		method: method
+		url: url
+		headers: headers
+		body: default(body, '')
+	})
+	resp := if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+	if resp.status {
+		402 -> {
+			data := json.parse(resp.body)
+			{
+				ok: false
+				paymentRequired: true
+				paymentHeader: resp.headers.'x-payment'
+				paymentDetails: data
+				status: 402
+			}
+		}
+		200, 201 -> {
+			data := json.parse(resp.body)
+			{
+				ok: true
+				paymentRequired: false
+				data: data
+				status: resp.status
+			}
+		}
+		_ -> {
+			ok: false
+			paymentRequired: false
+			error: 'Request failed: ' + string(resp.status)
+			status: resp.status
+		}
+	}
+}
+
+// payAndRetry signs a payment and retries the original request.
+// paymentDetails should come from a previous 402 response.
+// signFn is a function that signs the payment payload: fn(payload) -> signature
+fn payAndRetry(url, opts, paymentDetails, signFn) {
+	signature := signFn(paymentDetails)
+	headers := default(if opts != ? -> opts.headers, {})
+	headers.'X-Payment' <- signature
+	headers.'Content-Type' <- default(headers.'Content-Type', 'application/json')
+	if auth.getToken() != ? -> {
+		headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
+	}
+	raw := req({
+		method: default(if opts != ? -> opts.method, 'GET')
+		url: url
+		headers: headers
+		body: default(if opts != ? -> opts.body, '')
+	})
+	resp := if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+	if resp.status {
+		200, 201 -> {
+			data := json.parse(resp.body)
+			{ ok: true, data: data, status: resp.status }
+		}
+		_ -> {
+			ok: false
+			error: 'Payment retry failed: ' + string(resp.status)
+			status: resp.status
+		}
+	}
+}

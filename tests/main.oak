@@ -1,0 +1,59 @@
+// luna-api tests — validates chain lookups, ERC-6492 encoding, config,
+// community helpers, contract constants, live API calls, and all Luna
+// platform modules.
+//
+// Run: magnolia ext/luna-sdk/tests/main.oak
+
+std := import('std')
+
+TestModules := [
+	// Privy SDK layer
+	'auth'
+	'chains'
+	'erc6492'
+	'contracts'
+	'wallet'
+	'funding'
+	'analytics'
+	'farcaster'
+	'x402'
+	'errors'
+	'solana'
+	// Luna platform layer
+	'communities'
+	'forum'
+	'memes'
+	'user'
+	'social'
+	'notifications'
+	'dm'
+	'luna-wallet'
+	'token'
+	'config'
+	'stats'
+	'spotlight'
+	'search'
+	'leaderboard'
+	'payments'
+	'referral'
+	'rewards'
+	'admin'
+	'giphy'
+	'collections'
+	'agents'
+]
+
+// --- Test runner bootstrap ---------------------------------------------------
+{
+	new: new
+} := import('test')
+
+t := new('Luna API')
+
+TestModules |> std.each(fn(name) {
+	runner := import(name + '.test')
+	runner.run(t)
+})
+
+t.report()
+t.exit()

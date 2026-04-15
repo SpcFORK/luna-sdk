@@ -1,0 +1,38 @@
+// luna-api/config provides platform configuration for Luna.
+//
+// Config shape:
+//   {
+//     postCostCents: int, replyCostCents: int, repostCostCents: int
+//     spotlightCostCents: int, swapPercentage: int
+//     treasuryRetentionPercentage: int, creatorPercentage: int
+//     postLimit: int, postLimitWindowHours: int
+//   }
+
+{
+	default: default
+} := import('std')
+json := import('json')
+auth := import('auth')
+
+fn _base() auth._cfg.apiBase
+
+fn _req(method, url) {
+	raw := req({
+		method: method
+		url: url
+		headers: {}
+		body: ''
+	})
+	if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}
+}
+
+fn _parse(resp) if resp.status {
+	200 -> { ok: true, data: json.parse(resp.body) }
+	_ -> { ok: false, error: 'Request failed', code: resp.status }
+}
+
+// get fetches the platform configuration (no auth required).
+fn get() _parse(_req('GET', _base() + '/config'))
