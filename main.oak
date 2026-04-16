@@ -94,7 +94,7 @@ donate := import('donate')
 
 // VERSION tracks the Oak abstraction layer version.
 // REMEMBER: bumb the README on change.
-VERSION := '0.10.1'
+VERSION := '0.11.2'
 
 // --- Top-Level Convenience Functions -----------------------------------------
 

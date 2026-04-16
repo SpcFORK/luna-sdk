@@ -18,21 +18,25 @@ fn _m(method, path, body) _parse(_req(method, _base() + path, body))
 
 // --- Post Creation -----------------------------------------------------------
 
-// createImagePost creates an image post by providing image data (JSON body).
+// createImagePost creates an image post (multipart image upload, 10 MB max).
 //   createImagePost({ image_url: 'https://...', title: '...', communityId: 1 })
+//   Costs $1.00 USDC (first 10 posts free).
 fn createImagePost(opts) _m('POST', '/memes', json.serialize(opts))
 
-// createTextPost creates a text-only post.
-//   createTextPost({ title: '...', body: '...', communityId: 1, txSignature: '...' })
+// createTextPost creates a styled text post (max 500 characters).
+//   createTextPost({ body: 'Hello world', communityId: 1 })
+//   Costs $1.00 USDC (first 10 posts free).
 fn createTextPost(opts) _m('POST', '/memes/text', json.serialize(opts))
 
-// createAudioPost creates an audio post.
+// createAudioPost creates an audio post (100 MB max).
 fn createAudioPost(opts) _m('POST', '/memes/audio', json.serialize(opts))
 
-// createGifPost creates a GIF post.
+// createGifPost creates a GIF/image-by-URL post.
+//   createGifPost({ gifUrl: 'https://tenor.com/...' })
+//   Supports Tenor, Giphy, Imgur page URLs and direct image links.
 fn createGifPost(opts) _m('POST', '/memes/gif', json.serialize(opts))
 
-// createVideoPost creates a video post.
+// createVideoPost creates a video post (100 MB max, auto-generated thumbnail).
 fn createVideoPost(opts) _m('POST', '/memes/video', json.serialize(opts))
 
 // --- Meme Metadata -----------------------------------------------------------

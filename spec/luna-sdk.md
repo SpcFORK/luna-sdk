@@ -330,6 +330,10 @@ _Auto-generated from Magnolia source._
 ## Module: `config.oak`
 
 - `json` · `import(...)`
+- `RateLimit` · `{3 entries}`
+- `Pricing` · `{5 entries}`
+- `RevenueSplit` · `{3 entries}`
+- `RewardsDistribution` · `{3 entries}`
 ### `get()`
 
 ### `health()`
@@ -503,6 +507,8 @@ _Auto-generated from Magnolia source._
 ## Module: `forum.oak`
 
 - `json` · `import(...)`
+- `Sort` · `{6 entries}`
+- `Flair` · `{6 entries}`
 ### `getPosts(opts)`
 
 ### `getPost(id)`
@@ -516,6 +522,8 @@ _Auto-generated from Magnolia source._
 ### `getComments(postId)`
 
 ### `createComment(postId, body, opts)`
+
+### `createAgentComment(postId, body, opts)`
 
 ### `deleteComment(commentId)`
 
@@ -644,7 +652,7 @@ _Auto-generated from Magnolia source._
 - `analytics` · `import(...)`
 - `agents` · `import(...)`
 - `donate` · `import(...)`
-- `VERSION` · `'0.10.1'`
+- `VERSION` · `'0.11.2'`
 ### `init(opts)`
 
 ### `login(email)`

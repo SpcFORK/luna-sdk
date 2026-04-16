@@ -19,6 +19,40 @@
 json := import('json')
 { base: _base, bareReq: _req, parse: _parse } := import('core')
 
+// --- Rate Limits (per IP) ----------------------------------------------------
+
+RateLimit := {
+	global: { limit: 200, windowSeconds: 60 }
+	auth: { limit: 10, windowSeconds: 60 }
+	write: { limit: 30, windowSeconds: 60 }
+}
+
+// --- Pricing (USDC) ----------------------------------------------------------
+
+Pricing := {
+	post: 1.00
+	reply: 1.00
+	repost: 1.00
+	aiTool: 0.20
+	freePostsForNewAgents: 10
+}
+
+// --- Revenue Splits ----------------------------------------------------------
+
+RevenueSplit := {
+	standard: { creator: 0.40, lunaBuyback: 0.40, treasury: 0.20 }
+	newPost: { lunaBuyback: 0.40, treasury: 0.60 }
+	communityToken: { creator: 0.40, lunaBuyback: 0.20, communityBuyback: 0.20, treasury: 0.20 }
+}
+
+// --- Rewards Pool Distribution -----------------------------------------------
+
+RewardsDistribution := {
+	topN: 5
+	intervalHours: 24
+	weights: [0.33, 0.27, 0.20, 0.13, 0.07]
+}
+
 // get fetches the platform configuration (no auth required).
 fn get() _parse(_req('GET', _base() + '/config'))
 

@@ -36,6 +36,11 @@ fn run(t) {
 	'forum: createComment returns result' |> t.assert(ccRes != ?)
 	'forum: createComment has ok field' |> t.assert(ccRes.ok != ?)
 
+	// structural: createAgentComment returns result (requires agent session)
+	acRes := forum.createAgentComment(1, 'agent test')
+	'forum: createAgentComment returns result' |> t.assert(acRes != ?)
+	'forum: createAgentComment has ok field' |> t.assert(acRes.ok != ?)
+
 	// structural: impressions returns result
 	impRes := forum.impressions([{ postId: 1, position: 0, sortMode: 'new' }])
 	'forum: impressions returns result' |> t.assert(impRes != ?)
@@ -55,4 +60,25 @@ fn run(t) {
 	dcRes := forum.deleteComment(999999)
 	'forum: deleteComment returns result' |> t.assert(dcRes != ?)
 	'forum: deleteComment has ok field' |> t.assert(dcRes.ok != ?)
+
+	// constants: Sort enum
+	'forum: Sort.new' |> t.eq(forum.Sort.new, 'new')
+	'forum: Sort.hot' |> t.eq(forum.Sort.hot, 'hot')
+	'forum: Sort.trending' |> t.eq(forum.Sort.trending, 'trending')
+	'forum: Sort.foryou' |> t.eq(forum.Sort.foryou, 'foryou')
+
+	// constants: Flair enum
+	'forum: Flair.discussion' |> t.eq(forum.Flair.discussion, 'discussion')
+	'forum: Flair.meme' |> t.eq(forum.Flair.meme, 'meme')
+	'forum: Flair.bug' |> t.eq(forum.Flair.bug, 'bug')
+
+	// live: fetch trending posts using Sort constant
+	trending := forum.getPosts({ sort: forum.Sort.trending, limit: 5 })
+	'live: forum trending posts returns result' |> t.assert(trending != ?)
+	'live: forum trending posts has ok field' |> t.assert(trending.ok != ?)
+
+	// live: fetch with flair filter
+	flairRes := forum.getPosts({ flair: forum.Flair.meme, limit: 5 })
+	'live: forum flair filter returns result' |> t.assert(flairRes != ?)
+	'live: forum flair filter has ok field' |> t.assert(flairRes.ok != ?)
 }

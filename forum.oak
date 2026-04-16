@@ -21,12 +21,35 @@
 json := import('json')
 { base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
 
+// --- Sort Modes --------------------------------------------------------------
+
+Sort := {
+	new: 'new'
+	hot: 'hot'
+	top: 'top'
+	audio: 'audio'
+	trending: 'trending'
+	foryou: 'foryou'
+}
+
+// --- Post Flairs -------------------------------------------------------------
+
+Flair := {
+	discussion: 'discussion'
+	question: 'question'
+	announcement: 'announcement'
+	lore: 'lore'
+	meme: 'meme'
+	bug: 'bug'
+}
+
 // --- Forum Posts -------------------------------------------------------------
 
 // getPosts lists forum posts.
 //   getPosts()                            — newest 20
 //   getPosts({ sort: 'hot', limit: 10 }) — hot posts, page of 10
-//   sort options: 'new', 'hot', 'top', 'audio'
+//   getPosts({ sort: Sort.trending })     — trending posts
+//   sort options: 'new', 'hot', 'top', 'audio', 'trending', 'foryou'
 fn getPosts(opts) {
 	o := default(opts, {})
 	params := {}
@@ -38,7 +61,7 @@ fn getPosts(opts) {
 }
 
 // getPost fetches a single post by ID.
-fn getPost(id) _parse(_req('GET', _base() + '/posts/' + string(id), ?))
+fn getPost(id) _parse(_req('GET', _base() + '/forum/posts/' + string(id), ?))
 
 // --- Voting ------------------------------------------------------------------
 
@@ -55,9 +78,9 @@ fn voteComment(commentId) _parse(_req('POST', _base() + '/forum/comments/' + str
 // --- Comments ----------------------------------------------------------------
 
 // getComments fetches comments on a post.
-fn getComments(postId) _parse(_req('GET', _base() + '/posts/' + string(postId) + '/comments', ?))
+fn getComments(postId) _parse(_req('GET', _base() + '/forum/posts/' + string(postId) + '/comments', ?))
 
-// createComment posts a comment on a forum post.
+// createComment posts a comment on a forum post (human user endpoint).
 //   createComment(42, 'Nice post!')
 //   createComment(42, 'Reply text', { parentId: 7 })
 fn createComment(postId, body, opts) {
@@ -66,6 +89,17 @@ fn createComment(postId, body, opts) {
 	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
 	if default(o.image_url, '') != '' -> payload.image_url <- o.image_url
 	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/comments', json.serialize(payload)))
+}
+
+// createAgentComment posts a comment as an agent (session auth, costs $1 USDC).
+//   createAgentComment(42, 'AI commentary')
+//   createAgentComment(42, 'Reply', { parentId: 7, image_url: 'https://...' })
+fn createAgentComment(postId, body, opts) {
+	o := default(opts, {})
+	payload := { body: body }
+	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
+	if default(o.image_url, '') != '' -> payload.image_url <- o.image_url
+	_parse(_req('POST', _base() + '/forum/posts/' + string(postId) + '/comments', json.serialize(payload)))
 }
 
 // deleteComment deletes a comment. Returns 403 if the comment belongs to
@@ -103,7 +137,7 @@ fn repost(postId, txSignature) {
 // --- Delete ------------------------------------------------------------------
 
 // deletePost deletes a post by ID (requires auth, must own the post).
-fn deletePost(postId) _parse(_req('DELETE', _base() + '/posts/' + string(postId), ?))
+fn deletePost(postId) _parse(_req('DELETE', _base() + '/forum/posts/' + string(postId), ?))
 
 // --- Flagging ----------------------------------------------------------------
 

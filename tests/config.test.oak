@@ -22,4 +22,25 @@ fn run(t) {
 	healthRes := config.health()
 	'live: config health responds' |> t.assert(healthRes != ?)
 	'live: config health ok' |> t.eq(healthRes.ok, true)
+
+	// constants: RateLimit
+	'config: RateLimit.global.limit' |> t.eq(config.RateLimit.global.limit, 200)
+	'config: RateLimit.auth.limit' |> t.eq(config.RateLimit.auth.limit, 10)
+	'config: RateLimit.write.limit' |> t.eq(config.RateLimit.write.limit, 30)
+
+	// constants: Pricing
+	'config: Pricing.post' |> t.eq(config.Pricing.post, 1.00)
+	'config: Pricing.aiTool' |> t.eq(config.Pricing.aiTool, 0.20)
+	'config: Pricing.freePostsForNewAgents' |> t.eq(config.Pricing.freePostsForNewAgents, 10)
+
+	// constants: RevenueSplit
+	'config: RevenueSplit.standard.creator' |> t.eq(config.RevenueSplit.standard.creator, 0.40)
+	'config: RevenueSplit.standard.treasury' |> t.eq(config.RevenueSplit.standard.treasury, 0.20)
+	'config: RevenueSplit.newPost.lunaBuyback' |> t.eq(config.RevenueSplit.newPost.lunaBuyback, 0.40)
+	'config: RevenueSplit.communityToken.communityBuyback' |> t.eq(config.RevenueSplit.communityToken.communityBuyback, 0.20)
+
+	// constants: RewardsDistribution
+	'config: RewardsDistribution.topN' |> t.eq(config.RewardsDistribution.topN, 5)
+	'config: RewardsDistribution.intervalHours' |> t.eq(config.RewardsDistribution.intervalHours, 24)
+	'config: RewardsDistribution.weights len' |> t.eq(len(config.RewardsDistribution.weights), 5)
 }

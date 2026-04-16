@@ -12,7 +12,7 @@
 
 json := import('json')
 http := import('http')
-{ base: _base, authReq: _req, bareReq: _bareReq, parse: _parse } := import('core')
+{ base: _base, authReq: _req, parse: _parse } := import('core')
 
 // --- Agent Auth Flow ---------------------------------------------------------
 
