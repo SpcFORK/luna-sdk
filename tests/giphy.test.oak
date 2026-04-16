@@ -1,9 +1,19 @@
-// giphy tests — live trending (no auth, proxied through Luna API)
+// giphy tests — live trending & search (no auth, proxied through Luna API)
 
 giphy := import('../giphy')
 
 fn run(t) {
+	// Functions exist
+	'giphy.search is fn' |> t.eq(type(giphy.search), :function)
+	'giphy.trending is fn' |> t.eq(type(giphy.trending), :function)
+
+	// Live trending
 	result := giphy.trending({ limit: 5 })
 	'live: giphy trending responds' |> t.assert(result != ?)
 	'live: giphy trending has ok field' |> t.assert(result.ok != ?)
+
+	// Live search
+	searchResult := giphy.search('cats', { limit: 3 })
+	'live: giphy search responds' |> t.assert(searchResult != ?)
+	'live: giphy search has ok field' |> t.assert(searchResult.ok != ?)
 }

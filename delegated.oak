@@ -73,9 +73,13 @@ fn _parseDelegationResponse(resp) if resp.status {
 	}
 	400, 401, 403, 404, 422 -> {
 		data := json.parse(resp.body)
+		msg := if type(data) {
+			:object -> default(data.message, 'Delegation operation failed')
+			_ -> 'Delegation operation failed'
+		}
 		{
 			ok: false
-			error: default(data.message, 'Delegation operation failed')
+			error: msg
 			code: resp.status
 		}
 	}

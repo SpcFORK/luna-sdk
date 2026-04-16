@@ -1,0 +1,31 @@
+// delegated tests — structural checks for delegated actions & session signers
+
+delegated := import('../delegated')
+
+fn run(t) {
+	// Delegated action functions exist
+	'delegated.requestDelegation is fn' |> t.eq(type(delegated.requestDelegation), :function)
+	'delegated.approveDelegation is fn' |> t.eq(type(delegated.approveDelegation), :function)
+	'delegated.revokeDelegation is fn' |> t.eq(type(delegated.revokeDelegation), :function)
+	'delegated.listDelegations is fn' |> t.eq(type(delegated.listDelegations), :function)
+
+	// Session signer functions exist
+	'delegated.createSessionSigner is fn' |> t.eq(type(delegated.createSessionSigner), :function)
+	'delegated.revokeSessionSigner is fn' |> t.eq(type(delegated.revokeSessionSigner), :function)
+	'delegated.listSessionSigners is fn' |> t.eq(type(delegated.listSessionSigners), :function)
+
+	// Structural: requestDelegation without auth returns error shape
+	result := delegated.requestDelegation('0xtest', { permissions: [:signMessage] })
+	'delegated: requestDelegation returns result' |> t.assert(result != ?)
+	'delegated: requestDelegation has ok field' |> t.assert(result.ok != ?)
+
+	// Structural: listDelegations without auth returns error shape
+	listResult := delegated.listDelegations()
+	'delegated: listDelegations returns result' |> t.assert(listResult != ?)
+	'delegated: listDelegations has ok field' |> t.assert(listResult.ok != ?)
+
+	// Structural: createSessionSigner without auth returns error shape
+	signerResult := delegated.createSessionSigner({ permissions: [:signMessage] })
+	'delegated: createSessionSigner returns result' |> t.assert(signerResult != ?)
+	'delegated: createSessionSigner has ok field' |> t.assert(signerResult.ok != ?)
+}

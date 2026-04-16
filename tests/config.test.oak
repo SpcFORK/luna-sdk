@@ -16,4 +16,10 @@ fn run(t) {
 	'live: solPrice returns result' |> t.assert(sol != ?)
 	'live: solPrice has price field' |> t.assert(sol.price >= 0)
 	'config.solPrice is fn' |> t.eq(type(config.solPrice), :function)
+
+	// health check (public)
+	'config.health is fn' |> t.eq(type(config.health), :function)
+	healthRes := config.health()
+	'live: config health responds' |> t.assert(healthRes != ?)
+	'live: config health ok' |> t.eq(healthRes.ok, true)
 }

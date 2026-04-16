@@ -9,68 +9,74 @@
 
 json := import('json')
 http := import('http')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ default: default } := import('std')
+{ base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
+
+// --- Internal helper ---------------------------------------------------------
+
+fn _m(method, path, body) _parse(_req(method, _base() + path, body))
 
 // --- Post Creation -----------------------------------------------------------
 
+// createImagePost creates an image post by providing image data (JSON body).
+//   createImagePost({ image_url: 'https://...', title: '...', communityId: 1 })
+fn createImagePost(opts) _m('POST', '/memes', json.serialize(opts))
+
 // createTextPost creates a text-only post.
 //   createTextPost({ title: '...', body: '...', communityId: 1, txSignature: '...' })
-fn createTextPost(opts) {
-	_parse(_req('POST', _base() + '/memes/text', json.serialize(opts)))
-}
+fn createTextPost(opts) _m('POST', '/memes/text', json.serialize(opts))
 
 // createAudioPost creates an audio post.
-fn createAudioPost(opts) {
-	_parse(_req('POST', _base() + '/memes/audio', json.serialize(opts)))
-}
+fn createAudioPost(opts) _m('POST', '/memes/audio', json.serialize(opts))
 
 // createGifPost creates a GIF post.
-fn createGifPost(opts) {
-	_parse(_req('POST', _base() + '/memes/gif', json.serialize(opts)))
-}
+fn createGifPost(opts) _m('POST', '/memes/gif', json.serialize(opts))
 
 // createVideoPost creates a video post.
-fn createVideoPost(opts) {
-	_parse(_req('POST', _base() + '/memes/video', json.serialize(opts)))
-}
+fn createVideoPost(opts) _m('POST', '/memes/video', json.serialize(opts))
 
 // --- Meme Metadata -----------------------------------------------------------
 
 // getMediaMeta fetches media metadata for a post.
-fn getMediaMeta(postId) {
-	_parse(_req('GET', _base() + '/memes/' + string(postId) + '/media-meta', ?))
-}
+fn getMediaMeta(postId) _m('GET', '/memes/' + string(postId) + '/media-meta', ?)
+
+// updateMediaMeta updates media_meta on an audio post (waveform colors, title).
+fn updateMediaMeta(postId, meta) _m('PATCH', '/memes/' + string(postId) + '/media-meta', json.serialize(meta))
 
 // getFolder gets the folder a meme belongs to.
-fn getFolder(postId) {
-	_parse(_req('GET', _base() + '/memes/' + string(postId) + '/folder', ?))
-}
+fn getFolder(postId) _m('GET', '/memes/' + string(postId) + '/folder', ?)
 
 // save bookmarks a meme/post.
-fn save(postId) {
-	_parse(_req('POST', _base() + '/memes/' + string(postId) + '/save', json.serialize({})))
-}
+fn save(postId) _m('POST', '/memes/' + string(postId) + '/save', json.serialize({}))
 
 // resolveUrl resolves an external URL to preview metadata.
-fn resolveUrl(url) {
-	_parse(_req('GET', _base() + '/memes/resolve-url?url=' + http.percentEncode(url), ?))
-}
+fn resolveUrl(url) _m('GET', '/memes/resolve-url?url=' + http.percentEncode(url), ?)
 
 // --- Meme Lookup & Management ------------------------------------------------
 
 // getMeme fetches a meme/post by ID.
-fn getMeme(memeId) {
-	_parse(_req('GET', _base() + '/memes/' + string(memeId), ?))
-}
+fn getMeme(memeId) _m('GET', '/memes/' + string(memeId), ?)
 
 // deleteMeme deletes a meme by ID (requires auth, must own it).
-fn deleteMeme(memeId) {
-	_parse(_req('DELETE', _base() + '/memes/' + string(memeId), ?))
+fn deleteMeme(memeId) _m('DELETE', '/memes/' + string(memeId), ?)
+
+// list fetches meme posts with pagination.
+//   list({ limit: 20, cursor: '...' })
+fn list(opts) {
+	o := default(opts, {})
+	params := {}
+	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
+	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
+	_parse(_req('GET', _q(_base() + '/memes', params), ?))
 }
 
 // --- AI Generation -----------------------------------------------------------
 
 // generateMeme uses AI to generate a meme from a prompt.
-fn generateMeme(opts) {
-	_parse(_req('POST', _base() + '/generate/meme', json.serialize(opts)))
-}
+fn generateMeme(opts) _m('POST', '/generate/meme', json.serialize(opts))
+
+// generateMinimalist generates a minimalist illustration via Supermeme AI.
+fn generateMinimalist(opts) _m('POST', '/generate/minimalist', json.serialize(opts))
+
+// generateAiImage generates an AI image via Replicate (Nano Banana 2).
+fn generateAiImage(opts) _m('POST', '/generate/ai-image', json.serialize(opts))

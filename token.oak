@@ -19,6 +19,9 @@ fn balance() _parse(_req('GET', _base() + '/token/balance', ?))
 // info fetches token details by mint address.
 fn info(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/info', ?))
 
+// metadata returns Metaplex-style JSON metadata for a post's token.
+fn metadata(postId) _parse(_req('GET', _base() + '/token/metadata/' + string(postId), ?))
+
 // tokenHoldings returns holders of a specific token.
 fn tokenHoldings(mint) _parse(_req('GET', _base() + '/token/' + string(mint) + '/holdings', ?))
 
@@ -67,3 +70,6 @@ fn dedicated() _parse(_req('GET', _base() + '/tokens/dedicated', ?))
 
 // launched returns launched tokens.
 fn launched() _parse(_req('GET', _base() + '/tokens/launched', ?))
+
+// vanityPool returns unused vanity keypair pool stats (pump-suffix mints).
+fn vanityPool() _parse(_req('GET', _base() + '/token/vanity-pool', ?))

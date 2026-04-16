@@ -50,4 +50,9 @@ fn run(t) {
 	flagRes := forum.flag(999999, 'spam')
 	'forum: flag returns result' |> t.assert(flagRes != ?)
 	'forum: flag has ok field' |> t.assert(flagRes.ok != ?)
+
+	// structural: deleteComment returns result
+	dcRes := forum.deleteComment(999999)
+	'forum: deleteComment returns result' |> t.assert(dcRes != ?)
+	'forum: deleteComment has ok field' |> t.assert(dcRes.ok != ?)
 }

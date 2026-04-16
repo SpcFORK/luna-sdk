@@ -23,6 +23,14 @@ _Auto-generated from Magnolia source._
 
 - `json` · `import(...)`
 - `http` · `import(...)`
+### `signup(opts)`
+
+### `claimVerify(opts)`
+
+### `login(apiKey)`
+
+### `logout()`
+
 ### `me()`
 
 ### `get(agentId)`
@@ -32,6 +40,8 @@ _Auto-generated from Magnolia source._
 ### `byUsername(username)`
 
 ### `updateProfile(fields)`
+
+### `createPost(opts)`
 
 ## Module: `analytics.oak`
 
@@ -203,6 +213,10 @@ _Auto-generated from Magnolia source._
 
 ### `_req(method, url, body)`
 
+### `_p(method, path, body)`
+
+### `_login(path, body)`
+
 ## Module: `chains.oak`
 
 - `ethereum` · `{6 entries}`
@@ -259,6 +273,8 @@ _Auto-generated from Magnolia source._
 ## Module: `communities.oak`
 
 - `json` · `import(...)`
+### `_c(method, path, body)`
+
 ### `get(slug)`
 
 ### `list(opts)`
@@ -315,6 +331,8 @@ _Auto-generated from Magnolia source._
 
 - `json` · `import(...)`
 ### `get()`
+
+### `health()`
 
 ### `solPrice()`
 
@@ -454,6 +472,8 @@ _Auto-generated from Magnolia source._
 
 - `json` · `import(...)`
 - `auth` · `import(...)`
+### `_f(method, path, body)`
+
 ### `loginWithFarcaster(opts)`
 
 ### `getFarcasterSigner()`
@@ -497,6 +517,8 @@ _Auto-generated from Magnolia source._
 
 ### `createComment(postId, body, opts)`
 
+### `deleteComment(commentId)`
+
 ### `tokenlessPosts(opts)`
 
 ### `impressions(items)`
@@ -513,6 +535,8 @@ _Auto-generated from Magnolia source._
 - `http` · `import(...)`
 - `auth` · `import(...)`
 - `FundingMethod` · `{5 entries}`
+### `_f(method, path, body)`
+
 ### `initFiatOnramp(opts)`
 
 ### `checkOnrampStatus(orderId)`
@@ -620,7 +644,7 @@ _Auto-generated from Magnolia source._
 - `analytics` · `import(...)`
 - `agents` · `import(...)`
 - `donate` · `import(...)`
-- `VERSION` · `'0.8.0'`
+- `VERSION` · `'0.10.1'`
 ### `init(opts)`
 
 ### `login(email)`
@@ -645,6 +669,10 @@ _Auto-generated from Magnolia source._
 
 - `json` · `import(...)`
 - `http` · `import(...)`
+### `_m(method, path, body)`
+
+### `createImagePost(opts)`
+
 ### `createTextPost(opts)`
 
 ### `createAudioPost(opts)`
@@ -654,6 +682,8 @@ _Auto-generated from Magnolia source._
 ### `createVideoPost(opts)`
 
 ### `getMediaMeta(postId)`
+
+### `updateMediaMeta(postId, meta)`
 
 ### `getFolder(postId)`
 
@@ -665,7 +695,13 @@ _Auto-generated from Magnolia source._
 
 ### `deleteMeme(memeId)`
 
+### `list(opts)`
+
 ### `generateMeme(opts)`
+
+### `generateMinimalist(opts)`
+
+### `generateAiImage(opts)`
 
 ## Module: `notifications.oak`
 
@@ -712,6 +748,8 @@ _Auto-generated from Magnolia source._
 ## Module: `social.oak`
 
 - `json` · `import(...)`
+### `_s(method, path, body)`
+
 ### `follow(userId)`
 
 ### `unfollow(userId)`
@@ -784,6 +822,8 @@ _Auto-generated from Magnolia source._
 
 ### `info(mint)`
 
+### `metadata(postId)`
+
 ### `tokenHoldings(mint)`
 
 ### `creatorFees(mint)`
@@ -809,6 +849,8 @@ _Auto-generated from Magnolia source._
 ### `dedicated()`
 
 ### `launched()`
+
+### `vanityPool()`
 
 ## Module: `user.oak`
 
@@ -884,6 +926,10 @@ _Auto-generated from Magnolia source._
 
 ### `_req(method, url, body)`
 
+### `_w(method, path, body)`
+
+### `_walletOp(path, body)`
+
 ### `createWallet()`
 
 ### `importWallet(opts)`
@@ -929,6 +975,8 @@ _Auto-generated from Magnolia source._
 ### `updateWallet(walletId, fields)`
 
 ### `walletRpc(walletId, rpcMethod, rpcParams)`
+
+### `_signOp(path, field, value, opts)`
 
 ### `signMessage(message, opts)`
 

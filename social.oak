@@ -11,82 +11,58 @@
 json := import('json')
 { base: _base, authReq: _req, parse: _parse } := import('core')
 
+// --- Internal helper ---------------------------------------------------------
+
+fn _s(method, path, body) _parse(_req(method, _base() + path, body))
+
 // --- User Follow -------------------------------------------------------------
 
 // follow follows a user by ID.
-fn follow(userId) {
-	_parse(_req('POST', _base() + '/users/' + string(userId) + '/follow', json.serialize({})))
-}
+fn follow(userId) _s('POST', '/users/' + string(userId) + '/follow', json.serialize({}))
 
 // unfollow unfollows a user by ID.
-fn unfollow(userId) {
-	_parse(_req('DELETE', _base() + '/users/' + string(userId) + '/follow', ?))
-}
+fn unfollow(userId) _s('DELETE', '/users/' + string(userId) + '/follow', ?)
 
 // followStatus returns follow relationship and counts.
-fn followStatus(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/follow-status', ?))
-}
+fn followStatus(userId) _s('GET', '/users/' + string(userId) + '/follow-status', ?)
 
 // followCounts returns follower/following counts only.
-fn followCounts(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/follow-counts', ?))
-}
+fn followCounts(userId) _s('GET', '/users/' + string(userId) + '/follow-counts', ?)
 
 // followers lists a user's followers.
-fn followers(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/followers', ?))
-}
+fn followers(userId) _s('GET', '/users/' + string(userId) + '/followers', ?)
 
 // following lists who a user follows.
-fn following(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/following', ?))
-}
+fn following(userId) _s('GET', '/users/' + string(userId) + '/following', ?)
 
 // --- User Block --------------------------------------------------------------
 
 // block blocks a user.
-fn block(userId) {
-	_parse(_req('POST', _base() + '/users/' + string(userId) + '/block', json.serialize({})))
-}
+fn block(userId) _s('POST', '/users/' + string(userId) + '/block', json.serialize({}))
 
 // unblock unblocks a previously blocked user.
-fn unblock(userId) {
-	_parse(_req('DELETE', _base() + '/users/' + string(userId) + '/block', ?))
-}
+fn unblock(userId) _s('DELETE', '/users/' + string(userId) + '/block', ?)
 
 // blockStatus checks whether a user is blocked.
-fn blockStatus(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/block-status', ?))
-}
+fn blockStatus(userId) _s('GET', '/users/' + string(userId) + '/block-status', ?)
 
 // --- User Tags ---------------------------------------------------------------
 
 // tag returns a user's tag (e.g., 'newbie', 'og', 'whale').
-fn tag(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/tag', ?))
-}
+fn tag(userId) _s('GET', '/users/' + string(userId) + '/tag', ?)
 
 // --- User Agents -------------------------------------------------------------
 
 // userAgents returns agents belonging to a user.
-fn userAgents(userId) {
-	_parse(_req('GET', _base() + '/users/' + string(userId) + '/agents', ?))
-}
+fn userAgents(userId) _s('GET', '/users/' + string(userId) + '/agents', ?)
 
 // --- Agent Follow ------------------------------------------------------------
 
 // followAgent follows an agent by ID.
-fn followAgent(agentId) {
-	_parse(_req('POST', _base() + '/agents/' + string(agentId) + '/follow', json.serialize({})))
-}
+fn followAgent(agentId) _s('POST', '/agents/' + string(agentId) + '/follow', json.serialize({}))
 
 // unfollowAgent unfollows an agent.
-fn unfollowAgent(agentId) {
-	_parse(_req('DELETE', _base() + '/agents/' + string(agentId) + '/follow', ?))
-}
+fn unfollowAgent(agentId) _s('DELETE', '/agents/' + string(agentId) + '/follow', ?)
 
 // agentFollowStatus returns agent follow status.
-fn agentFollowStatus(agentId) {
-	_parse(_req('GET', _base() + '/agents/' + string(agentId) + '/follow-status', ?))
-}
+fn agentFollowStatus(agentId) _s('GET', '/agents/' + string(agentId) + '/follow-status', ?)

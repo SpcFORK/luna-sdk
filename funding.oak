@@ -18,139 +18,90 @@ FundingMethod := {
 	bridge: :bridge
 }
 
+// --- Internal helper ---------------------------------------------------------
+
+fn _f(method, path, body) _parseFundingResponse(auth._req(method, auth._cfg.privyBase + path, body))
+
 // --- Fiat On-Ramp ------------------------------------------------------------
 
-fn initFiatOnramp(opts) {
-	body := json.serialize({
-		amount: opts.amount
-		currency: default(opts.currency, 'usd')
-		chainId: opts.chain.id
-		method: string(default(opts.method, FundingMethod.moonpay))
-		walletAddress: opts.walletAddress
-		redirectUrl: opts.redirectUrl
-	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/fiat-onramp/init', body)
-	_parseFundingResponse(resp)
-}
+fn initFiatOnramp(opts) _f('POST', '/api/v1/fiat-onramp/init', json.serialize({
+	amount: opts.amount
+	currency: default(opts.currency, 'usd')
+	chainId: opts.chain.id
+	method: string(default(opts.method, FundingMethod.moonpay))
+	walletAddress: opts.walletAddress
+	redirectUrl: opts.redirectUrl
+}))
 
-fn checkOnrampStatus(orderId) {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/fiat-onramp/status/' + string(orderId), ?)
-	_parseFundingResponse(resp)
-}
+fn checkOnrampStatus(orderId) _f('GET', '/api/v1/fiat-onramp/status/' + string(orderId), ?)
 
 // --- Coinbase On-Ramp --------------------------------------------------------
 
-fn initCoinbaseOnramp(opts) {
-	body := json.serialize({
-		amount: opts.amount
-		currency: default(opts.currency, 'usd')
-		chainId: opts.chainId
-		walletAddress: opts.walletAddress
-	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/funding/coinbase_on_ramp/init', body)
-	_parseFundingResponse(resp)
-}
+fn initCoinbaseOnramp(opts) _f('POST', '/api/v1/funding/coinbase_on_ramp/init', json.serialize({
+	amount: opts.amount
+	currency: default(opts.currency, 'usd')
+	chainId: opts.chainId
+	walletAddress: opts.walletAddress
+}))
 
-fn checkCoinbaseOnrampStatus(orderId) {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/funding/coinbase_on_ramp/status/' + string(orderId), ?)
-	_parseFundingResponse(resp)
-}
+fn checkCoinbaseOnrampStatus(orderId) _f('GET', '/api/v1/funding/coinbase_on_ramp/status/' + string(orderId), ?)
 
 // --- Bridge Operations -------------------------------------------------------
 
-fn initBridge(opts) {
-	body := json.serialize({
-		fromChainId: opts.fromChain.id
-		toChainId: opts.toChain.id
-		token: default(opts.token, '')
-		amount: string(opts.amount)
-		walletAddress: opts.walletAddress
-	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/bridge/init', body)
-	_parseFundingResponse(resp)
-}
+fn initBridge(opts) _f('POST', '/api/v1/bridge/init', json.serialize({
+	fromChainId: opts.fromChain.id
+	toChainId: opts.toChain.id
+	token: default(opts.token, '')
+	amount: string(opts.amount)
+	walletAddress: opts.walletAddress
+}))
 
 // --- Bank Deposit ------------------------------------------------------------
 
-fn fundWithBankDeposit(opts) {
-	body := json.serialize({
-		amount: opts.amount
-		currency: default(opts.currency, 'usd')
-		walletAddress: opts.walletAddress
-	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/fund/bank-deposit', body)
-	_parseFundingResponse(resp)
-}
+fn fundWithBankDeposit(opts) _f('POST', '/api/v1/fund/bank-deposit', json.serialize({
+	amount: opts.amount
+	currency: default(opts.currency, 'usd')
+	walletAddress: opts.walletAddress
+}))
 
 // --- Token Utilities ---------------------------------------------------------
 
 fn getTokenPrice(tokenAddress, chainId) {
 	query := http.queryEncode({ token: tokenAddress, chainId: string(chainId) })
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/tokens/price?' + query, ?)
-	_parseFundingResponse(resp)
+	_f('GET', '/api/v1/tokens/price?' + query, ?)
 }
 
 fn getErc20Balance(tokenAddress, walletAddress, chainId) {
 	query := http.queryEncode({ token: tokenAddress, wallet: walletAddress, chainId: string(chainId) })
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/tokens/balance?' + query, ?)
-	_parseFundingResponse(resp)
+	_f('GET', '/api/v1/tokens/balance?' + query, ?)
 }
 
 // --- Moonpay -----------------------------------------------------------------
 
-fn signMoonpayUrl(url) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/plugins/moonpay_on_ramp/sign', json.serialize({ url: url }))
-	_parseFundingResponse(resp)
-}
+fn signMoonpayUrl(url) _f('POST', '/api/v1/plugins/moonpay_on_ramp/sign', json.serialize({ url: url }))
 
 // --- Fiat Customer / Virtual Accounts ----------------------------------------
 
-fn getFiatCustomer() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/fiat/customer', ?)
-	_parseFundingResponse(resp)
-}
-
-fn updateFiatCustomer(fields) {
-	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/fiat/customer', json.serialize(fields))
-	_parseFundingResponse(resp)
-}
-
-fn createVirtualAccount(opts) {
-	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/fiat/customer/virtual_accounts', json.serialize(default(opts, {})))
-	_parseFundingResponse(resp)
-}
+fn getFiatCustomer() _f('GET', '/api/v1/fiat/customer', ?)
+fn updateFiatCustomer(fields) _f('PUT', '/api/v1/fiat/customer', json.serialize(fields))
+fn createVirtualAccount(opts) _f('PUT', '/api/v1/fiat/customer/virtual_accounts', json.serialize(default(opts, {})))
 
 // --- Onramp Quotes & Provider ------------------------------------------------
 
-fn getOnrampQuotes(opts) {
-	resp := auth._req('PUT', auth._cfg.privyBase + '/api/v1/onramp/fiat/quotes', json.serialize(default(opts, {})))
-	_parseFundingResponse(resp)
-}
-
-fn getOnrampProviderSession(opts) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/onramp/fiat/provider_session_url', json.serialize(default(opts, {})))
-	_parseFundingResponse(resp)
-}
-
-fn getOnrampStatus(sessionId) {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/onramp/fiat/status/' + string(sessionId), ?)
-	_parseFundingResponse(resp)
-}
+fn getOnrampQuotes(opts) _f('PUT', '/api/v1/onramp/fiat/quotes', json.serialize(default(opts, {})))
+fn getOnrampProviderSession(opts) _f('POST', '/api/v1/onramp/fiat/provider_session_url', json.serialize(default(opts, {})))
+fn getOnrampStatus(sessionId) _f('GET', '/api/v1/onramp/fiat/status/' + string(sessionId), ?)
 
 // --- Token Info --------------------------------------------------------------
 
 // getSplTokenInfo fetches SPL token metadata by mint address.
-fn getSplTokenInfo(mintAddress) {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/spl_token_info?mint_address=' + string(mintAddress), ?)
-	_parseFundingResponse(resp)
-}
+fn getSplTokenInfo(mintAddress) _f('GET', '/api/v1/spl_token_info?mint_address=' + string(mintAddress), ?)
 
 // getPrivyTokenPrice fetches token price from the Privy pricing API.
 fn getPrivyTokenPrice(opts) {
 	qs := '?chain_id=' + string(default(opts.chainId, ''))
 	if opts.tokenAddress != ? -> qs <- qs + '&token_address=' + string(opts.tokenAddress)
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/token_price' + qs, ?)
-	_parseFundingResponse(resp)
+	_f('GET', '/api/v1/token_price' + qs, ?)
 }
 
 // --- Internal ----------------------------------------------------------------

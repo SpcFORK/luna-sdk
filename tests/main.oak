@@ -44,6 +44,7 @@ TestModules := [
 	'collections'
 	'agents'
 	'donate'
+	'delegated'
 ]
 
 // --- Test runner bootstrap ---------------------------------------------------

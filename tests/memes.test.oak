@@ -16,4 +16,16 @@ fn run(t) {
 	genResult := memes.generateMeme({ prompt: 'test' })
 	'memes: generateMeme returns result' |> t.assert(genResult != ?)
 	'memes: generateMeme has ok field' |> t.assert(genResult.ok != ?)
+
+	// new exports
+	'memes.createImagePost is fn' |> t.eq(type(memes.createImagePost), :function)
+	'memes.updateMediaMeta is fn' |> t.eq(type(memes.updateMediaMeta), :function)
+	'memes.list is fn' |> t.eq(type(memes.list), :function)
+	'memes.generateMinimalist is fn' |> t.eq(type(memes.generateMinimalist), :function)
+	'memes.generateAiImage is fn' |> t.eq(type(memes.generateAiImage), :function)
+
+	// structural: list returns result (public endpoint)
+	listRes := memes.list({ limit: 5 })
+	'memes: list returns result' |> t.assert(listRes != ?)
+	'memes: list has ok field' |> t.assert(listRes.ok != ?)
 }

@@ -4,12 +4,7 @@
 // interfaces. When compiled to --target web, calls resolve to the underlying
 // Privy React hooks; in other targets they operate through the HTTP bridge.
 
-{
-	default: default
-	map: map
-	each: each
-	entries: entries
-} := import('std')
+{ default: default } := import('std')
 json := import('json')
 
 // --- Configuration -----------------------------------------------------------
@@ -54,152 +49,80 @@ fn _authHeaders() {
 // --- Login Methods -----------------------------------------------------------
 
 fn loginWithEmail(email) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/init', json.serialize({ email: email }))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/passwordless/init', json.serialize({ email: email }))
 }
 
 fn verifyEmailCode(flowId, code) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/authenticate', json.serialize({ flowId: flowId, code: code }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/passwordless/authenticate', json.serialize({ flowId: flowId, code: code }))
 }
 
 fn loginWithOAuth(provider, opts) {
-	body := json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') })
-	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/init', body)
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/oauth/init', json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') }))
 }
 
 // authenticateOAuth completes OAuth login after the redirect callback.
 fn authenticateOAuth(authorizationCode, stateCode, opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/authenticate', json.serialize({
+	_login('/api/v1/oauth/authenticate', json.serialize({
 		authorizationCode: authorizationCode
 		stateCode: stateCode
 		redirectUrl: default(opts.redirectUrl, '')
 	}))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
 }
 
 fn loginWithSms(phone) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/init', json.serialize({ phone: phone }))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/passwordless_sms/init', json.serialize({ phone: phone }))
 }
 
 fn verifySmsCode(flowId, code) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/authenticate', json.serialize({ flowId: flowId, code: code }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/passwordless_sms/authenticate', json.serialize({ flowId: flowId, code: code }))
 }
 
 fn loginWithPasskey(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passkeys/authenticate/init', json.serialize(default(opts, {})))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/passkeys/authenticate/init', json.serialize(default(opts, {})))
 }
 
 fn signupWithPasskey(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passkeys/register', json.serialize(default(opts, {})))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/passkeys/register', json.serialize(default(opts, {})))
 }
 
 fn loginWithSiwe(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/authenticate', json.serialize({ message: message, signature: signature }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/siwe/authenticate', json.serialize({ message: message, signature: signature }))
 }
 
 // initSiwe requests a SIWE challenge nonce/message to sign.
 fn initSiwe(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/init', json.serialize(default(opts, {})))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/siwe/init', json.serialize(default(opts, {})))
 }
 
 fn loginWithTelegram(telegramAuthData) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/telegram/authenticate', json.serialize({ telegramAuthData: telegramAuthData }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/telegram/authenticate', json.serialize({ telegramAuthData: telegramAuthData }))
 }
 
 // linkTelegram links a Telegram account to the authenticated user.
-fn linkTelegram(telegramAuthData) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/telegram/link', json.serialize({ telegramAuthData: telegramAuthData }))
-	_parseAuthResponse(resp)
-}
+fn linkTelegram(telegramAuthData) _p('POST', '/api/v1/telegram/link', json.serialize({ telegramAuthData: telegramAuthData }))
 
 // unlinkTelegram unlinks the Telegram account.
-fn unlinkTelegram() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/telegram/unlink', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn unlinkTelegram() _p('POST', '/api/v1/telegram/unlink', json.serialize({}))
 
-fn loginWithCustomAuth(customToken) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/custom_jwt_account/authenticate', json.serialize({ token: customToken }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
-}
+fn loginWithCustomAuth(customToken) _login('/api/v1/custom_jwt_account/authenticate', json.serialize({ token: customToken }))
 
-fn loginWithSiws(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/authenticate', json.serialize({ message: message, signature: signature }))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
-}
+fn loginWithSiws(message, signature) _login('/api/v1/siws/authenticate', json.serialize({ message: message, signature: signature }))
 
 // initSiws requests a SIWS (Sign-In With Solana) challenge.
 fn initSiws(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/init', json.serialize(default(opts, {})))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/siws/init', json.serialize(default(opts, {})))
 }
 
 fn loginWithFarcaster(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v2/farcaster/init', json.serialize(default(opts, {})))
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v2/farcaster/init', json.serialize(default(opts, {})))
 }
 
 fn loginAsGuest() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/guest/authenticate', json.serialize({}))
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_login('/api/v1/guest/authenticate', json.serialize({}))
 }
 
 fn logout() {
-	_req('POST', _cfg.privyBase + '/api/v1/sessions/revoke', json.serialize({}))
+	_p('POST', '/api/v1/sessions/revoke', json.serialize({}))
 	setToken(?)
 	setRefreshToken(?)
 	{ ok: true }
@@ -207,7 +130,7 @@ fn logout() {
 
 // sessionLogout sends a logout (as opposed to revoke) to end the session.
 fn sessionLogout() {
-	_req('POST', _cfg.privyBase + '/api/v1/sessions/logout', json.serialize({}))
+	_p('POST', '/api/v1/sessions/logout', json.serialize({}))
 	setToken(?)
 	setRefreshToken(?)
 	{ ok: true }
@@ -215,247 +138,117 @@ fn sessionLogout() {
 
 // --- MFA (Multi-Factor Authentication) ---------------------------------------
 
-fn mfaEnrollTotp() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/enroll', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaEnrollTotp() _p('POST', '/api/v1/mfa_auth/totp/enroll', json.serialize({}))
 
 // mfaInitTotp initializes TOTP verification (returns challenge).
-fn mfaInitTotp() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/init', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaInitTotp() _p('POST', '/api/v1/mfa_auth/totp/init', json.serialize({}))
 
-fn mfaVerifyTotp(code) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/verify', json.serialize({ code: code }))
-	_parseAuthResponse(resp)
-}
+fn mfaVerifyTotp(code) _p('POST', '/api/v1/mfa_auth/totp/verify', json.serialize({ code: code }))
 
-fn mfaUnenrollTotp() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/totp/unenroll', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaUnenrollTotp() _p('POST', '/api/v1/mfa_auth/totp/unenroll', json.serialize({}))
 
-fn mfaInitPasskey() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/passkeys/init', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaInitPasskey() _p('POST', '/api/v1/mfa_auth/passkeys/init', json.serialize({}))
 
-fn mfaEnrollPasskey() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/passkeys/enrollment', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaEnrollPasskey() _p('POST', '/api/v1/mfa_auth/passkeys/enrollment', json.serialize({}))
 
-fn mfaVerifyPasskey(attestation) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa_auth/passkeys/verify', json.serialize({ attestation: attestation }))
-	_parseAuthResponse(resp)
-}
+fn mfaVerifyPasskey(attestation) _p('POST', '/api/v1/mfa_auth/passkeys/verify', json.serialize({ attestation: attestation }))
 
 // mfaChallengePasskey starts a passkey MFA challenge (separate from enrollment).
-fn mfaChallengePasskey() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa/passkeys/init', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaChallengePasskey() _p('POST', '/api/v1/mfa/passkeys/init', json.serialize({}))
 
 // --- Account Linking ---------------------------------------------------------
 
 fn linkOAuth(provider, opts) {
-	body := json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') })
-	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/link', body)
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/oauth/link', json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') }))
 }
 
-fn unlinkOAuth(provider) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/unlink', json.serialize({ provider: string(provider) }))
-	_parseAuthResponse(resp)
-}
+fn unlinkOAuth(provider) _p('POST', '/api/v1/oauth/unlink', json.serialize({ provider: string(provider) }))
 
 // initPasskeyLink requests a challenge for linking a new passkey.
-fn initPasskeyLink() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passkeys/link/init', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn initPasskeyLink() _p('POST', '/api/v1/passkeys/link/init', json.serialize({}))
 
-fn linkPasskey(attestation) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passkeys/link', json.serialize({ attestation: attestation }))
-	_parseAuthResponse(resp)
-}
+fn linkPasskey(attestation) _p('POST', '/api/v1/passkeys/link', json.serialize({ attestation: attestation }))
 
-fn linkFarcaster(opts) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/farcaster/link', json.serialize(default(opts, {})))
-	_parseAuthResponse(resp)
-}
+fn linkFarcaster(opts) _p('POST', '/api/v1/farcaster/link', json.serialize(default(opts, {})))
 
-fn unlinkFarcaster() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/farcaster/unlink', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn unlinkFarcaster() _p('POST', '/api/v1/farcaster/unlink', json.serialize({}))
 
-fn linkCustomJwt(token) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/custom_jwt_account/link', json.serialize({ token: token }))
-	_parseAuthResponse(resp)
-}
+fn linkCustomJwt(token) _p('POST', '/api/v1/custom_jwt_account/link', json.serialize({ token: token }))
 
-fn linkSiwe(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/link', json.serialize({ message: message, signature: signature }))
-	_parseAuthResponse(resp)
-}
+fn linkSiwe(message, signature) _p('POST', '/api/v1/siwe/link', json.serialize({ message: message, signature: signature }))
 
-fn unlinkSiwe(address) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/unlink', json.serialize({ address: address }))
-	_parseAuthResponse(resp)
-}
+fn unlinkSiwe(address) _p('POST', '/api/v1/siwe/unlink', json.serialize({ address: address }))
 
-fn linkSiws(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/link', json.serialize({ message: message, signature: signature }))
-	_parseAuthResponse(resp)
-}
+fn linkSiws(message, signature) _p('POST', '/api/v1/siws/link', json.serialize({ message: message, signature: signature }))
 
-fn unlinkSiws(address) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/unlink', json.serialize({ address: address }))
-	_parseAuthResponse(resp)
-}
+fn unlinkSiws(address) _p('POST', '/api/v1/siws/unlink', json.serialize({ address: address }))
 
-fn linkEmail(email) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/link', json.serialize({ email: email }))
-	_parseAuthResponse(resp)
-}
+fn linkEmail(email) _p('POST', '/api/v1/passwordless/link', json.serialize({ email: email }))
 
-fn unlinkEmail(email) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/unlink', json.serialize({ email: email }))
-	_parseAuthResponse(resp)
-}
+fn unlinkEmail(email) _p('POST', '/api/v1/passwordless/unlink', json.serialize({ email: email }))
 
-fn linkPhone(phone) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/link', json.serialize({ phone: phone }))
-	_parseAuthResponse(resp)
-}
+fn linkPhone(phone) _p('POST', '/api/v1/passwordless_sms/link', json.serialize({ phone: phone }))
 
-fn unlinkPhone(phone) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/unlink', json.serialize({ phone: phone }))
-	_parseAuthResponse(resp)
-}
+fn unlinkPhone(phone) _p('POST', '/api/v1/passwordless_sms/unlink', json.serialize({ phone: phone }))
 
-fn linkSmartWallet(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/link_smart_wallet', json.serialize({ message: message, signature: signature }))
-	_parseAuthResponse(resp)
-}
+fn linkSmartWallet(message, signature) _p('POST', '/api/v1/siwe/link_smart_wallet', json.serialize({ message: message, signature: signature }))
 
 // --- Account Transfer --------------------------------------------------------
 // Transfer endpoints move a linked account from one user to another.
 
 // transferEmail transfers an email account to the current user.
-fn transferEmail(email) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/transfer', json.serialize({ email: email }))
-	_parseAuthResponse(resp)
-}
+fn transferEmail(email) _p('POST', '/api/v1/passwordless/transfer', json.serialize({ email: email }))
 
 // transferPhone transfers a phone account to the current user.
-fn transferPhone(phone) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/transfer', json.serialize({ phone: phone }))
-	_parseAuthResponse(resp)
-}
+fn transferPhone(phone) _p('POST', '/api/v1/passwordless_sms/transfer', json.serialize({ phone: phone }))
 
 // transferOAuth transfers an OAuth account to the current user.
 fn transferOAuth(provider, opts) {
-	body := json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') })
-	resp := _req('POST', _cfg.privyBase + '/api/v1/oauth/transfer', body)
-	_parseAuthResponse(resp)
+	_p('POST', '/api/v1/oauth/transfer', json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') }))
 }
 
 // transferSiwe transfers a SIWE-linked wallet to the current user.
-fn transferSiwe(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siwe/transfer', json.serialize({ message: message, signature: signature }))
-	_parseAuthResponse(resp)
-}
+fn transferSiwe(message, signature) _p('POST', '/api/v1/siwe/transfer', json.serialize({ message: message, signature: signature }))
 
 // transferSiws transfers a SIWS-linked wallet to the current user.
-fn transferSiws(message, signature) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/siws/transfer', json.serialize({ message: message, signature: signature }))
-	_parseAuthResponse(resp)
-}
+fn transferSiws(message, signature) _p('POST', '/api/v1/siws/transfer', json.serialize({ message: message, signature: signature }))
 
 // transferTelegram transfers a Telegram account to the current user.
-fn transferTelegram(telegramAuthData) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/telegram/transfer', json.serialize({ telegramAuthData: telegramAuthData }))
-	_parseAuthResponse(resp)
-}
+fn transferTelegram(telegramAuthData) _p('POST', '/api/v1/telegram/transfer', json.serialize({ telegramAuthData: telegramAuthData }))
 
 // --- User Info ---------------------------------------------------------------
 
-fn getUser() {
-	resp := _req('GET', _cfg.privyBase + '/api/v1/users/me', ?)
-	_parseAuthResponse(resp)
-}
+fn getUser() _p('GET', '/api/v1/users/me')
 
-fn updateAccount(fields) {
-	resp := _req('PUT', _cfg.privyBase + '/api/v1/users/me', json.serialize(fields))
-	_parseAuthResponse(resp)
-}
+fn updateAccount(fields) _p('PUT', '/api/v1/users/me', json.serialize(fields))
 
-fn getApp() {
-	resp := _req('GET', _cfg.privyBase + '/api/v1/apps/' + _cfg.appId, ?)
-	_parseAuthResponse(resp)
-}
+fn getApp() _p('GET', '/api/v1/apps/' + _cfg.appId)
 
-fn acceptTerms() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/users/me/accept_terms', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn acceptTerms() _p('POST', '/api/v1/users/me/accept_terms', json.serialize({}))
 
 // --- Token Management --------------------------------------------------------
 
-fn getIdentityToken() {
-	resp := _req('GET', _cfg.privyBase + '/api/v1/users/me/identity-token', ?)
-	_parseAuthResponse(resp)
-}
+fn getIdentityToken() _p('GET', '/api/v1/users/me/identity-token')
 
 fn getAccessToken() _cfg.token
 
-fn refreshAccessToken() {
-	body := json.serialize({ refreshToken: _cfg.refreshToken })
-	resp := _req('POST', _cfg.privyBase + '/api/v1/sessions', body)
-	result := _parseAuthResponse(resp)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
-}
+fn refreshAccessToken() _login('/api/v1/sessions', json.serialize({ refreshToken: _cfg.refreshToken }))
 
-fn getOAuthTokens(provider) {
-	resp := _req('GET', _cfg.privyBase + '/api/v1/users/me/oauth/' + string(provider) + '/token', ?)
-	_parseAuthResponse(resp)
-}
+fn getOAuthTokens(provider) _p('GET', '/api/v1/users/me/oauth/' + string(provider) + '/token')
 
-fn getAccessTokenForProvider(provider) {
-	resp := _req('GET', _cfg.privyBase + '/api/v1/users/me/access-token/' + string(provider), ?)
-	_parseAuthResponse(resp)
-}
+fn getAccessTokenForProvider(provider) _p('GET', '/api/v1/users/me/access-token/' + string(provider))
 
 // --- User Account Updates ----------------------------------------------------
 
-fn updateEmail(email) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless/update', json.serialize({ email: email }))
-	_parseAuthResponse(resp)
-}
+fn updateEmail(email) _p('POST', '/api/v1/passwordless/update', json.serialize({ email: email }))
 
-fn updatePhone(phone) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/passwordless_sms/update', json.serialize({ phone: phone }))
-	_parseAuthResponse(resp)
-}
+fn updatePhone(phone) _p('POST', '/api/v1/passwordless_sms/update', json.serialize({ phone: phone }))
 
 // --- MFA SMS -----------------------------------------------------------------
 
-fn mfaInitSms() {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa/passwordless_sms/init', json.serialize({}))
-	_parseAuthResponse(resp)
-}
+fn mfaInitSms() _p('POST', '/api/v1/mfa/passwordless_sms/init', json.serialize({}))
 
-fn mfaVerifySms(code) {
-	resp := _req('POST', _cfg.privyBase + '/api/v1/mfa/passwordless_sms/verify', json.serialize({ code: code }))
-	_parseAuthResponse(resp)
-}
+fn mfaVerifySms(code) _p('POST', '/api/v1/mfa/passwordless_sms/verify', json.serialize({ code: code }))
 
 // --- Internal Helpers --------------------------------------------------------
 
@@ -500,4 +293,19 @@ fn _req(method, url, body) {
 		:resp -> raw.resp
 		_ -> { status: 0, body: '', headers: {} }
 	}
+}
+
+// _p sends a request to a Privy API path and parses the response.
+//   _p('POST', '/api/v1/foo', json.serialize({...}))
+//   _p('GET', '/api/v1/bar')
+fn _p(method, path, body) _parseAuthResponse(_req(method, _cfg.privyBase + path, body))
+
+// _login sends a POST to Privy, parses, and auto-sets token/refreshToken.
+fn _login(path, body) {
+	result := _p('POST', path, body)
+	if result.token != ? -> {
+		setToken(result.token)
+		setRefreshToken(result.refreshToken)
+	}
+	result
 }

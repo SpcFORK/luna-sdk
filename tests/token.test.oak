@@ -15,4 +15,13 @@ fn run(t) {
 	// launched tokens list
 	launched := token.launched()
 	'live: token launched responds' |> t.assert(launched != ?)
+
+	// new exports
+	'token.metadata is fn' |> t.eq(type(token.metadata), :function)
+	'token.vanityPool is fn' |> t.eq(type(token.vanityPool), :function)
+
+	// live: vanity pool is a public endpoint
+	vp := token.vanityPool()
+	'live: token vanityPool responds' |> t.assert(vp != ?)
+	'live: token vanityPool has ok' |> t.assert(vp.ok != ?)
 }

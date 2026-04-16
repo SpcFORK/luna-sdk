@@ -25,88 +25,50 @@
 json := import('json')
 { base: _lunaBase, authReq: _lunaReq, parse: _parseResponse, withQuery: _q } := import('core')
 
+// --- Internal helper ---------------------------------------------------------
+
+fn _c(method, path, body) _parseResponse(_lunaReq(method, _lunaBase() + path, body))
+
 // --- Community CRUD ----------------------------------------------------------
 
-fn get(slug) {
-	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug), ?)
-	_parseResponse(resp)
-}
+fn get(slug) _c('GET', '/communities/' + string(slug), ?)
 
-fn list(opts) {
-	url := _q(_lunaBase() + '/communities', default(opts, {}))
-	resp := _lunaReq('GET', url, ?)
-	_parseResponse(resp)
-}
+fn list(opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities', default(opts, {})), ?))
 
-fn create(opts) {
-	body := json.serialize({
-		name: opts.name
-		slug: opts.slug
-		description: default(opts.description, '')
-		isPrivate: default(opts.isPrivate, false)
-		iconUrl: opts.iconUrl
-		bannerUrl: opts.bannerUrl
-		tokenMint: opts.tokenMint
-		tokenSymbol: opts.tokenSymbol
-	})
-	resp := _lunaReq('POST', _lunaBase() + '/communities', body)
-	_parseResponse(resp)
-}
+fn create(opts) _c('POST', '/communities', json.serialize({
+	name: opts.name
+	slug: opts.slug
+	description: default(opts.description, '')
+	isPrivate: default(opts.isPrivate, false)
+	iconUrl: opts.iconUrl
+	bannerUrl: opts.bannerUrl
+	tokenMint: opts.tokenMint
+	tokenSymbol: opts.tokenSymbol
+}))
 
-fn update(slug, fields) {
-	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug), json.serialize(fields))
-	_parseResponse(resp)
-}
-
-fn del(slug) {
-	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug), ?)
-	_parseResponse(resp)
-}
+fn update(slug, fields) _c('PUT', '/communities/' + string(slug), json.serialize(fields))
+fn del(slug) _c('DELETE', '/communities/' + string(slug), ?)
 
 // --- Membership --------------------------------------------------------------
 
-fn join(slug) {
-	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/join', json.serialize({}))
-	_parseResponse(resp)
-}
+fn join(slug) _c('POST', '/communities/' + string(slug) + '/join', json.serialize({}))
+fn leave(slug) _c('POST', '/communities/' + string(slug) + '/leave', json.serialize({}))
 
-fn leave(slug) {
-	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/leave', json.serialize({}))
-	_parseResponse(resp)
-}
-
-fn members(slug, opts) {
-	url := _q(_lunaBase() + '/communities/' + string(slug) + '/members', default(opts, {}))
-	resp := _lunaReq('GET', url, ?)
-	_parseResponse(resp)
-}
+fn members(slug, opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/members', default(opts, {})), ?))
 
 // --- Posts -------------------------------------------------------------------
 
-fn getPosts(slug, opts) {
-	url := _q(_lunaBase() + '/communities/' + string(slug) + '/posts', default(opts, {}))
-	resp := _lunaReq('GET', url, ?)
-	_parseResponse(resp)
-}
+fn getPosts(slug, opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/posts', default(opts, {})), ?))
 
-fn createPost(slug, post) {
-	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/posts', json.serialize(post))
-	_parseResponse(resp)
-}
+fn createPost(slug, post) _c('POST', '/communities/' + string(slug) + '/posts', json.serialize(post))
 
 // --- Rules -------------------------------------------------------------------
 
-fn getRules(slug) {
-	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/rules', ?)
-	_parseResponse(resp)
-}
+fn getRules(slug) _c('GET', '/communities/' + string(slug) + '/rules', ?)
 
 // --- Token/Swap Info ---------------------------------------------------------
 
-fn getTokenInfo(slug) {
-	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/token', ?)
-	_parseResponse(resp)
-}
+fn getTokenInfo(slug) _c('GET', '/communities/' + string(slug) + '/token', ?)
 
 // --- Helpers -----------------------------------------------------------------
 
@@ -117,59 +79,30 @@ fn hasToken?(community) community.tokenMint != ? & community.tokenMint != ''
 
 // --- Membership Status -------------------------------------------------------
 
-fn membership(slug) {
-	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/membership', ?)
-	_parseResponse(resp)
-}
+fn membership(slug) _c('GET', '/communities/' + string(slug) + '/membership', ?)
 
 // --- Member Role -------------------------------------------------------------
 
-fn setMemberRole(slug, userId, role) {
-	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/members/' + string(userId) + '/role', json.serialize({ role: role }))
-	_parseResponse(resp)
-}
+fn setMemberRole(slug, userId, role) _c('PUT', '/communities/' + string(slug) + '/members/' + string(userId) + '/role', json.serialize({ role: role }))
 
 // --- Bans --------------------------------------------------------------------
 
-fn getBans(slug) {
-	resp := _lunaReq('GET', _lunaBase() + '/communities/' + string(slug) + '/bans', ?)
-	_parseResponse(resp)
-}
-
-fn ban(slug, userId, reason) {
-	resp := _lunaReq('POST', _lunaBase() + '/communities/' + string(slug) + '/bans', json.serialize({ userId: userId, reason: default(reason, '') }))
-	_parseResponse(resp)
-}
-
-fn unban(slug, userId) {
-	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug) + '/bans/' + string(userId), ?)
-	_parseResponse(resp)
-}
+fn getBans(slug) _c('GET', '/communities/' + string(slug) + '/bans', ?)
+fn ban(slug, userId, reason) _c('POST', '/communities/' + string(slug) + '/bans', json.serialize({ userId: userId, reason: default(reason, '') }))
+fn unban(slug, userId) _c('DELETE', '/communities/' + string(slug) + '/bans/' + string(userId), ?)
 
 // --- Post Moderation ---------------------------------------------------------
 
-fn deletePost(slug, postId) {
-	resp := _lunaReq('DELETE', _lunaBase() + '/communities/' + string(slug) + '/posts/' + string(postId), ?)
-	_parseResponse(resp)
-}
+fn deletePost(slug, postId) _c('DELETE', '/communities/' + string(slug) + '/posts/' + string(postId), ?)
 
 // --- Verification ------------------------------------------------------------
 
-fn verify(slug, verified) {
-	resp := _lunaReq('PATCH', _lunaBase() + '/communities/' + string(slug) + '/verify', json.serialize({ verified: verified }))
-	_parseResponse(resp)
-}
+fn verify(slug, verified) _c('PATCH', '/communities/' + string(slug) + '/verify', json.serialize({ verified: verified }))
 
 // --- Rules Update ------------------------------------------------------------
 
-fn updateRules(slug, rules) {
-	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/rules', json.serialize({ rules: rules }))
-	_parseResponse(resp)
-}
+fn updateRules(slug, rules) _c('PUT', '/communities/' + string(slug) + '/rules', json.serialize({ rules: rules }))
 
 // --- Token Update ------------------------------------------------------------
 
-fn updateToken(slug, tokenMint, tokenSymbol) {
-	resp := _lunaReq('PUT', _lunaBase() + '/communities/' + string(slug) + '/token', json.serialize({ tokenMint: tokenMint, tokenSymbol: tokenSymbol }))
-	_parseResponse(resp)
-}
+fn updateToken(slug, tokenMint, tokenSymbol) _c('PUT', '/communities/' + string(slug) + '/token', json.serialize({ tokenMint: tokenMint, tokenSymbol: tokenSymbol }))

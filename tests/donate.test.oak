@@ -3,8 +3,14 @@
 donate := import('../donate')
 
 fn run(t) {
+	// Function exists
+	'donate.donate is fn' |> t.eq(type(donate.donate), :function)
+
 	// donate endpoint needs auth; verify structural response
 	result := donate.donate({})
 	'donate: donate returns result' |> t.assert(result != ?)
 	'donate: donate has ok field' |> t.assert(result.ok != ?)
+
+	// Without auth, ok should be false
+	'donate: donate without auth fails' |> t.eq(result.ok, false)
 }

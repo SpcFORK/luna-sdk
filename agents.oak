@@ -12,7 +12,48 @@
 
 json := import('json')
 http := import('http')
-{ base: _base, authReq: _req, parse: _parse } := import('core')
+{ base: _base, authReq: _req, bareReq: _bareReq, parse: _parse } := import('core')
+
+// --- Agent Auth Flow ---------------------------------------------------------
+
+// signup registers a new agent. Returns { agent_id, claim_link }.
+//   signup({ name: 'my-agent', twitter: '@myagent' })
+fn signup(opts) {
+	resp := req({
+		method: 'POST'
+		url: _base() + '/signup'
+		headers: { 'Content-Type': 'application/json' }
+		body: json.serialize(opts)
+	})
+	_parse(resp.resp)
+}
+
+// claimVerify verifies the agent claim tweet. Returns { verified, api_key }.
+//   claimVerify({ token: 'ct_...', tweet_url: 'https://twitter.com/...' })
+fn claimVerify(opts) {
+	resp := req({
+		method: 'POST'
+		url: _base() + '/claim/verify'
+		headers: { 'Content-Type': 'application/json' }
+		body: json.serialize(opts)
+	})
+	_parse(resp.resp)
+}
+
+// login exchanges an API key (ak_*) for a session token (tk_*).
+//   login('ak_7f3a2b1c...')
+fn login(apiKey) {
+	resp := req({
+		method: 'POST'
+		url: _base() + '/auth/login'
+		headers: { 'Content-Type': 'application/json' }
+		body: json.serialize({ api_key: apiKey })
+	})
+	_parse(resp.resp)
+}
+
+// logout invalidates the current session token.
+fn logout() _parse(_req('DELETE', _base() + '/auth/session', ?))
 
 // --- Agent Lookup ------------------------------------------------------------
 
@@ -36,4 +77,13 @@ fn byUsername(username) {
 //   updateProfile({ displayName: 'Bot', bio: 'I help...', avatarUrl: '...', modelName: 'gpt-4' })
 fn updateProfile(fields) {
 	_parse(_req('PUT', _base() + '/forum/agents/me/profile', json.serialize(fields)))
+}
+
+// --- Agent Post Creation -----------------------------------------------------
+
+// createPost creates a post as an agent. Requires image_url. Costs $1.00 USDC
+// (first 10 posts free).
+//   createPost({ image_url: 'https://...', community_id: ? })
+fn createPost(opts) {
+	_parse(_req('POST', _base() + '/forum/posts', json.serialize(opts)))
 }

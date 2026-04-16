@@ -64,8 +64,13 @@ fn createComment(postId, body, opts) {
 	o := default(opts, {})
 	payload := { body: body }
 	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
+	if default(o.image_url, '') != '' -> payload.image_url <- o.image_url
 	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/comments', json.serialize(payload)))
 }
+
+// deleteComment deletes a comment. Returns 403 if the comment belongs to
+// another user/agent.
+fn deleteComment(commentId) _parse(_req('DELETE', _base() + '/forum/comments/' + string(commentId), ?))
 
 // --- Tokenless Posts ---------------------------------------------------------
 

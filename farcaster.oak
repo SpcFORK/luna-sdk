@@ -7,31 +7,20 @@
 json := import('json')
 auth := import('auth')
 
+// --- Internal helpers --------------------------------------------------------
+
+fn _f(method, path, body) _parseFarcasterResponse(auth._req(method, auth._cfg.privyBase + path, body))
+
 // --- Farcaster Auth ----------------------------------------------------------
 
-fn loginWithFarcaster(opts) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v2/farcaster/init', json.serialize(default(opts, {})))
-	_parseFarcasterResponse(resp)
-}
+fn loginWithFarcaster(opts) _f('POST', '/api/v2/farcaster/init', json.serialize(default(opts, {})))
+fn getFarcasterSigner() _f('GET', '/api/v1/farcaster/status', ?)
+fn createFarcasterSigner() _f('POST', '/api/v1/farcaster/init', json.serialize({}))
 
-fn getFarcasterSigner() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/farcaster/status', ?)
-	_parseFarcasterResponse(resp)
-}
-
-fn createFarcasterSigner() {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/init', json.serialize({}))
-	_parseFarcasterResponse(resp)
-}
-
-fn checkFarcasterStatus(nonce) {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/farcaster/status?nonce=' + string(default(nonce, '')), ?)
-	_parseFarcasterResponse(resp)
-}
+fn checkFarcasterStatus(nonce) _f('GET', '/api/v1/farcaster/status?nonce=' + string(default(nonce, '')), ?)
 
 fn authenticateFarcaster(message, signature) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/authenticate', json.serialize({ message: message, signature: signature }))
-	result := _parseFarcasterResponse(resp)
+	result := _f('POST', '/api/v1/farcaster/authenticate', json.serialize({ message: message, signature: signature }))
 	if result.ok -> if result.data.token != ? -> {
 		auth.setToken(result.data.token)
 		auth.setRefreshToken(result.data.refreshToken)
@@ -39,41 +28,22 @@ fn authenticateFarcaster(message, signature) {
 	result
 }
 
-fn linkFarcaster(opts) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/link', json.serialize(default(opts, {})))
-	_parseFarcasterResponse(resp)
-}
-
-fn unlinkFarcaster() {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/unlink', json.serialize({}))
-	_parseFarcasterResponse(resp)
-}
+fn linkFarcaster(opts) _f('POST', '/api/v1/farcaster/link', json.serialize(default(opts, {})))
+fn unlinkFarcaster() _f('POST', '/api/v1/farcaster/unlink', json.serialize({}))
 
 // transferFarcaster transfers a Farcaster account to the current user.
-fn transferFarcaster(opts) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/transfer', json.serialize(default(opts, {})))
-	_parseFarcasterResponse(resp)
-}
+fn transferFarcaster(opts) _f('POST', '/api/v1/farcaster/transfer', json.serialize(default(opts, {})))
 
 // signerStatus returns the status of a Farcaster signer registration.
-fn signerStatus(signerPublicKey) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/farcaster/signer/status', json.serialize({ publicKey: signerPublicKey }))
-	_parseFarcasterResponse(resp)
-}
+fn signerStatus(signerPublicKey) _f('POST', '/api/v1/farcaster/signer/status', json.serialize({ publicKey: signerPublicKey }))
 
 // --- Cross-App Accounts ------------------------------------------------------
 
-fn getCrossAppAccounts() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/apps/' + auth._cfg.appId + '/cross-app/connections', ?)
-	_parseFarcasterResponse(resp)
-}
+fn getCrossAppAccounts() _f('GET', '/api/v1/apps/' + auth._cfg.appId + '/cross-app/connections', ?)
 
 // --- Guest Accounts ----------------------------------------------------------
 
-fn getGuestAccounts() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/guest/accounts', ?)
-	_parseFarcasterResponse(resp)
-}
+fn getGuestAccounts() _f('GET', '/api/v1/guest/accounts', ?)
 
 // --- Internal ----------------------------------------------------------------
 

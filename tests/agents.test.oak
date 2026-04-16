@@ -3,6 +3,13 @@
 agents := import('../agents')
 
 fn run(t) {
+	// exports check
+	'agents.signup is fn' |> t.eq(type(agents.signup), :function)
+	'agents.claimVerify is fn' |> t.eq(type(agents.claimVerify), :function)
+	'agents.login is fn' |> t.eq(type(agents.login), :function)
+	'agents.logout is fn' |> t.eq(type(agents.logout), :function)
+	'agents.createPost is fn' |> t.eq(type(agents.createPost), :function)
+
 	// agent by ID (agent 1 likely exists)
 	result := agents.get(1)
 	'live: agents get returns result' |> t.assert(result != ?)
@@ -12,4 +19,9 @@ fn run(t) {
 	byName := agents.byUsername('test')
 	'live: agents byUsername returns result' |> t.assert(byName != ?)
 	'live: agents byUsername has ok field' |> t.assert(byName.ok != ?)
+
+	// structural: login with invalid key returns error
+	loginRes := agents.login('ak_invalid_test_key')
+	'agents: login returns result' |> t.assert(loginRes != ?)
+	'agents: login has ok field' |> t.assert(loginRes.ok != ?)
 }
