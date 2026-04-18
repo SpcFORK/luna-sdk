@@ -68,11 +68,22 @@ fn pending() {
 //
 // On native Oak:  req() is synchronous → resolved Thenable.
 // On JS runtimes: req(data, cb) is async → pending Thenable.
-fn fetch(data) if _jsRuntime?() {
-	true -> {
-		t := pending()
-		req(data, fn(raw) t._resolve(raw))
-		t
+fn fetch(data) {
+	// Strip null/empty body to avoid req() type errors (GET/HEAD/DELETE etc.)
+	clean := if data.body {
+		?, '' -> {
+			method: if data.method { ?, '' -> 'GET', _ -> data.method }
+			url: data.url
+			headers: data.headers
+		}
+		_ -> data
 	}
-	_ -> resolved(req(data))
+	if _jsRuntime?() {
+		true -> {
+			t := pending()
+			req(clean, fn(raw) t._resolve(raw))
+			t
+		}
+		_ -> resolved(req(clean))
+	}
 }

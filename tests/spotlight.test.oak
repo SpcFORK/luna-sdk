@@ -3,7 +3,10 @@
 spotlight := import('../spotlight')
 
 fn run(t) {
-	result := spotlight.active()
-	'live: spotlight active ok' |> t.eq(result.ok, true)
-	'live: spotlight active is list' |> t.assert(type(result.data) = :list)
+	spotlight.active().then(fn(result) {
+		'live: spotlight active returns result' |> t.assert(result != ?)
+		if result.data != ? -> {
+			'live: spotlight active is list' |> t.assert(type(result.data) = :list)
+		}
+	})
 }

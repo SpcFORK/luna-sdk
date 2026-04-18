@@ -3,10 +3,12 @@
 leaderboard := import('../leaderboard')
 
 fn run(t) {
-	result := leaderboard.get()
-	'live: leaderboard get responds' |> t.assert(result != ?)
-	'live: leaderboard has ok field' |> t.assert(result.ok != ?)
+	leaderboard.get().then(fn(result) {
+		'live: leaderboard get responds' |> t.assert(result != ?)
+		'live: leaderboard has ok field' |> t.assert(result.ok != ?)
+	})
 
-	cfg := leaderboard.config()
-	'live: leaderboard config responds' |> t.assert(cfg != ?)
+	leaderboard.config().then(fn(cfg) {
+		'live: leaderboard config responds' |> t.assert(cfg != ?)
+	})
 }

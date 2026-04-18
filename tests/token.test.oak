@@ -4,24 +4,28 @@ token := import('../token')
 
 fn run(t) {
 	// token info for the Luna token mint
-	result := token.info('4NBTf8PfLH4oLFnwf3knv46FY9i5oXjDxffCetXRpump')
-	'live: token info responds' |> t.assert(result != ?)
-	'live: token info has ok field' |> t.assert(result.ok != ?)
+	token.info('4NBTf8PfLH4oLFnwf3knv46FY9i5oXjDxffCetXRpump').then(fn(result) {
+		'live: token info responds' |> t.assert(result != ?)
+		'live: token info has ok field' |> t.assert(result.ok != ?)
+	})
 
 	// dedicated tokens list
-	ded := token.dedicated()
-	'live: token dedicated responds' |> t.assert(ded != ?)
+	token.dedicated().then(fn(ded) {
+		'live: token dedicated responds' |> t.assert(ded != ?)
+	})
 
 	// launched tokens list
-	launched := token.launched()
-	'live: token launched responds' |> t.assert(launched != ?)
+	token.launched().then(fn(launched) {
+		'live: token launched responds' |> t.assert(launched != ?)
+	})
 
 	// new exports
 	'token.metadata is fn' |> t.eq(type(token.metadata), :function)
 	'token.vanityPool is fn' |> t.eq(type(token.vanityPool), :function)
 
 	// live: vanity pool is a public endpoint
-	vp := token.vanityPool()
-	'live: token vanityPool responds' |> t.assert(vp != ?)
-	'live: token vanityPool has ok' |> t.assert(vp.ok != ?)
+	token.vanityPool().then(fn(vp) {
+		'live: token vanityPool responds' |> t.assert(vp != ?)
+		'live: token vanityPool has ok' |> t.assert(vp.ok != ?)
+	})
 }

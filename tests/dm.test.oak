@@ -4,7 +4,8 @@ dm := import('../dm')
 
 fn run(t) {
 	// Without auth, conversations endpoint returns error or empty
-	result := dm.conversations()
-	'dm: conversations returns result' |> t.assert(result != ?)
-	'dm: conversations has ok field' |> t.assert(result.ok != ?)
+	dm.conversations().then(fn(result) {
+		'dm: conversations returns result' |> t.assert(result != ?)
+		'dm: conversations has ok field' |> t.assert(result.ok != ?)
+	})
 }

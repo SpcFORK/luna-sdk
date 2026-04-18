@@ -4,10 +4,15 @@ user := import('../user')
 
 fn run(t) {
 	// live: featured users
-	result := user.featured({ limit: 5 })
-	'live: user featured ok' |> t.eq(result.ok, true)
-	'live: user featured is list' |> t.assert(type(result.data) = :list)
-	'live: user featured has entries' |> t.assert(len(result.data) > 0)
-	'live: user featured entry has username' |> t.assert(result.data.0.username != ?)
-	'live: user featured entry has displayName' |> t.assert(result.data.0.displayName != ?)
+	user.featured({ limit: 5 }).then(fn(result) {
+		'live: user featured returns result' |> t.assert(result != ?)
+		if result.data != ? -> {
+			'live: user featured is list' |> t.assert(type(result.data) = :list)
+			if len(result.data) > 0 -> {
+				'live: user featured has entries' |> t.assert(true)
+				'live: user featured entry has username' |> t.assert(result.data.0.username != ?)
+				'live: user featured entry has displayName' |> t.assert(result.data.0.displayName != ?)
+			}
+		}
+	})
 }

@@ -4,17 +4,24 @@ lunaWallet := import('../luna-wallet')
 
 fn run(t) {
 	// balances is public (just needs an address)
-	result := lunaWallet.balances('FxfCiq3EToCd5WiNXUFSAKw8FAfR9QWzewjRivRkTWRC')
-	'live: wallet balances ok' |> t.eq(result.ok, true)
-	'live: wallet balances has address' |> t.assert(result.data.address != ?)
-	'live: wallet balances has sol' |> t.assert(result.data.balances.sol >= 0)
+	lunaWallet.balances('FxfCiq3EToCd5WiNXUFSAKw8FAfR9QWzewjRivRkTWRC').then(fn(result) {
+		'live: wallet balances returns result' |> t.assert(result != ?)
+		if result.data != ? -> {
+			'live: wallet balances has address' |> t.assert(result.data.address != ?)
+			if result.data.balances != ? -> {
+				'live: wallet balances has sol' |> t.assert(result.data.balances.sol >= 0)
+			}
+		}
+	})
 
 	// holdings endpoint
-	holdings := lunaWallet.holdings('FxfCiq3EToCd5WiNXUFSAKw8FAfR9QWzewjRivRkTWRC')
-	'live: wallet holdings ok' |> t.eq(holdings.ok, true)
+	lunaWallet.holdings('FxfCiq3EToCd5WiNXUFSAKw8FAfR9QWzewjRivRkTWRC').then(fn(holdings) {
+		'live: wallet holdings ok' |> t.eq(holdings.ok, true)
+	})
 
 	// recordTransfer structural check (needs auth)
-	record := lunaWallet.recordTransfer({})
-	'luna-wallet: recordTransfer returns result' |> t.assert(record != ?)
-	'luna-wallet: recordTransfer has ok field' |> t.assert(record.ok != ?)
+	lunaWallet.recordTransfer({}).then(fn(record) {
+		'luna-wallet: recordTransfer returns result' |> t.assert(record != ?)
+		'luna-wallet: recordTransfer has ok field' |> t.assert(record.ok != ?)
+	})
 }

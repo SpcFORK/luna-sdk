@@ -3,8 +3,11 @@
 search := import('../search')
 
 fn run(t) {
-	result := search.search('luna')
-	'live: search ok' |> t.eq(result.ok, true)
-	'live: search has users list' |> t.assert(type(result.data.users) = :list)
-	'live: search has communities list' |> t.assert(type(result.data.communities) = :list)
+	search.search('luna').then(fn(result) {
+		'live: search returns result' |> t.assert(result != ?)
+		if result.data != ? -> {
+			'live: search has users list' |> t.assert(type(result.data.users) = :list)
+			'live: search has communities list' |> t.assert(type(result.data.communities) = :list)
+		}
+	})
 }

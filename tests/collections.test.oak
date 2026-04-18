@@ -7,12 +7,14 @@ fn run(t) {
 	'collections.get is fn' |> t.eq(type(collections.get), :function)
 
 	// collection 1 may or may not exist; verify structural response
-	result := collections.get(1)
-	'collections: get returns result' |> t.assert(result != ?)
-	'collections: get has ok field' |> t.assert(result.ok != ?)
+	collections.get(1).then(fn(result) {
+		'collections: get returns result' |> t.assert(result != ?)
+		'collections: get has ok field' |> t.assert(result.ok != ?)
+	})
 
 	// Invalid collection returns error shape
-	badResult := collections.get(-999)
-	'collections: invalid id returns result' |> t.assert(badResult != ?)
-	'collections: invalid id has ok field' |> t.assert(badResult.ok != ?)
+	collections.get(-999).then(fn(badResult) {
+		'collections: invalid id returns result' |> t.assert(badResult != ?)
+		'collections: invalid id has ok field' |> t.assert(badResult.ok != ?)
+	})
 }

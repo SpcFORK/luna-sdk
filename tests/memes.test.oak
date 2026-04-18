@@ -4,18 +4,21 @@ memes := import('../memes')
 
 fn run(t) {
 	// resolveUrl is a read-only endpoint
-	result := memes.resolveUrl('https://example.com')
-	'live: memes resolveUrl responds' |> t.assert(result.ok != ?)
+	memes.resolveUrl('https://example.com').then(fn(result) {
+		'live: memes resolveUrl responds' |> t.assert(result.ok != ?)
+	})
 
 	// getMeme structural check (needs valid id, expect error/response)
-	getResult := memes.getMeme('nonexistent-id')
-	'memes: getMeme returns result' |> t.assert(getResult != ?)
-	'memes: getMeme has ok field' |> t.assert(getResult.ok != ?)
+	memes.getMeme('nonexistent-id').then(fn(getResult) {
+		'memes: getMeme returns result' |> t.assert(getResult != ?)
+		'memes: getMeme has ok field' |> t.assert(getResult.ok != ?)
+	})
 
 	// generateMeme structural check (needs auth)
-	genResult := memes.generateMeme({ prompt: 'test' })
-	'memes: generateMeme returns result' |> t.assert(genResult != ?)
-	'memes: generateMeme has ok field' |> t.assert(genResult.ok != ?)
+	memes.generateMeme({ prompt: 'test' }).then(fn(genResult) {
+		'memes: generateMeme returns result' |> t.assert(genResult != ?)
+		'memes: generateMeme has ok field' |> t.assert(genResult.ok != ?)
+	})
 
 	// new exports
 	'memes.createImagePost is fn' |> t.eq(type(memes.createImagePost), :function)
@@ -25,7 +28,8 @@ fn run(t) {
 	'memes.generateAiImage is fn' |> t.eq(type(memes.generateAiImage), :function)
 
 	// structural: list returns result (public endpoint)
-	listRes := memes.list({ limit: 5 })
-	'memes: list returns result' |> t.assert(listRes != ?)
-	'memes: list has ok field' |> t.assert(listRes.ok != ?)
+	memes.list({ limit: 5 }).then(fn(listRes) {
+		'memes: list returns result' |> t.assert(listRes != ?)
+		'memes: list has ok field' |> t.assert(listRes.ok != ?)
+	})
 }

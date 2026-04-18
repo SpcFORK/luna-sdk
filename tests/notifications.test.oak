@@ -4,17 +4,20 @@ notifications := import('../notifications')
 
 fn run(t) {
 	// Without auth, these return error; verify we get a structured response
-	result := notifications.unreadCount()
-	'notif: unreadCount returns result' |> t.assert(result != ?)
-	'notif: unreadCount has ok field' |> t.assert(result.ok != ?)
+	notifications.unreadCount().then(fn(result) {
+		'notif: unreadCount returns result' |> t.assert(result != ?)
+		'notif: unreadCount has ok field' |> t.assert(result.ok != ?)
+	})
 
 	// list with pagination params
-	listRes := notifications.list({ limit: 5 })
-	'notif: list returns result' |> t.assert(listRes != ?)
-	'notif: list has ok field' |> t.assert(listRes.ok != ?)
+	notifications.list({ limit: 5 }).then(fn(listRes) {
+		'notif: list returns result' |> t.assert(listRes != ?)
+		'notif: list has ok field' |> t.assert(listRes.ok != ?)
+	})
 
 	// markRead structural test
-	mrRes := notifications.markRead(1)
-	'notif: markRead returns result' |> t.assert(mrRes != ?)
-	'notif: markRead has ok field' |> t.assert(mrRes.ok != ?)
+	notifications.markRead(1).then(fn(mrRes) {
+		'notif: markRead returns result' |> t.assert(mrRes != ?)
+		'notif: markRead has ok field' |> t.assert(mrRes.ok != ?)
+	})
 }

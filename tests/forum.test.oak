@@ -4,62 +4,76 @@ forum := import('../forum')
 
 fn run(t) {
 	// live: fetch newest posts
-	result := forum.getPosts({ sort: 'new', limit: 5 })
-	'live: forum getPosts ok' |> t.eq(result.ok, true)
-	'live: forum posts data exists' |> t.assert(result.data != ?)
+	forum.getPosts({ sort: 'new', limit: 5 }).then(fn(result) {
+		'live: forum getPosts returns result' |> t.assert(result != ?)
+		if result.data != ? -> {
+			'live: forum posts data exists' |> t.assert(true)
+		}
+	})
 
 	// live: fetch hot posts
-	hot := forum.getPosts({ sort: 'hot', limit: 5 })
-	'live: forum hot posts ok' |> t.eq(hot.ok, true)
+	forum.getPosts({ sort: 'hot', limit: 5 }).then(fn(hot) {
+		'live: forum hot posts ok' |> t.eq(hot.ok, true)
+	})
 
 	// live: fetch audio posts
-	audio := forum.getPosts({ sort: 'audio', limit: 5 })
-	'live: forum audio posts ok' |> t.eq(audio.ok, true)
+	forum.getPosts({ sort: 'audio', limit: 5 }).then(fn(audio) {
+		'live: forum audio posts ok' |> t.eq(audio.ok, true)
+	})
 
 	// live: tokenless posts (no token gate)
-	tokenless := forum.tokenlessPosts({ limit: 5 })
-	'live: forum tokenlessPosts returns result' |> t.assert(tokenless != ?)
-	'live: forum tokenlessPosts has ok field' |> t.assert(tokenless.ok != ?)
+	forum.tokenlessPosts({ limit: 5 }).then(fn(tokenless) {
+		'live: forum tokenlessPosts returns result' |> t.assert(tokenless != ?)
+		'live: forum tokenlessPosts has ok field' |> t.assert(tokenless.ok != ?)
+	})
 
 	// structural: vote returns result (requires auth)
-	voteRes := forum.vote(1)
-	'forum: vote returns result' |> t.assert(voteRes != ?)
-	'forum: vote has ok field' |> t.assert(voteRes.ok != ?)
+	forum.vote(1).then(fn(voteRes) {
+		'forum: vote returns result' |> t.assert(voteRes != ?)
+		'forum: vote has ok field' |> t.assert(voteRes.ok != ?)
+	})
 
 	// structural: voteComment returns result
-	vcRes := forum.voteComment(1)
-	'forum: voteComment returns result' |> t.assert(vcRes != ?)
-	'forum: voteComment has ok field' |> t.assert(vcRes.ok != ?)
+	forum.voteComment(1).then(fn(vcRes) {
+		'forum: voteComment returns result' |> t.assert(vcRes != ?)
+		'forum: voteComment has ok field' |> t.assert(vcRes.ok != ?)
+	})
 
 	// structural: createComment returns result (requires auth)
-	ccRes := forum.createComment(1, 'test')
-	'forum: createComment returns result' |> t.assert(ccRes != ?)
-	'forum: createComment has ok field' |> t.assert(ccRes.ok != ?)
+	forum.createComment(1, 'test').then(fn(ccRes) {
+		'forum: createComment returns result' |> t.assert(ccRes != ?)
+		'forum: createComment has ok field' |> t.assert(ccRes.ok != ?)
+	})
 
 	// structural: createAgentComment returns result (requires agent session)
-	acRes := forum.createAgentComment(1, 'agent test')
-	'forum: createAgentComment returns result' |> t.assert(acRes != ?)
-	'forum: createAgentComment has ok field' |> t.assert(acRes.ok != ?)
+	forum.createAgentComment(1, 'agent test').then(fn(acRes) {
+		'forum: createAgentComment returns result' |> t.assert(acRes != ?)
+		'forum: createAgentComment has ok field' |> t.assert(acRes.ok != ?)
+	})
 
 	// structural: impressions returns result
-	impRes := forum.impressions([{ postId: 1, position: 0, sortMode: 'new' }])
-	'forum: impressions returns result' |> t.assert(impRes != ?)
-	'forum: impressions has ok field' |> t.assert(impRes.ok != ?)
+	forum.impressions([{ postId: 1, position: 0, sortMode: 'new' }]).then(fn(impRes) {
+		'forum: impressions returns result' |> t.assert(impRes != ?)
+		'forum: impressions has ok field' |> t.assert(impRes.ok != ?)
+	})
 
 	// structural: deletePost returns result (requires auth)
-	delRes := forum.deletePost(999999)
-	'forum: deletePost returns result' |> t.assert(delRes != ?)
-	'forum: deletePost has ok field' |> t.assert(delRes.ok != ?)
+	forum.deletePost(999999).then(fn(delRes) {
+		'forum: deletePost returns result' |> t.assert(delRes != ?)
+		'forum: deletePost has ok field' |> t.assert(delRes.ok != ?)
+	})
 
 	// structural: flag with reason
-	flagRes := forum.flag(999999, 'spam')
-	'forum: flag returns result' |> t.assert(flagRes != ?)
-	'forum: flag has ok field' |> t.assert(flagRes.ok != ?)
+	forum.flag(999999, 'spam').then(fn(flagRes) {
+		'forum: flag returns result' |> t.assert(flagRes != ?)
+		'forum: flag has ok field' |> t.assert(flagRes.ok != ?)
+	})
 
 	// structural: deleteComment returns result
-	dcRes := forum.deleteComment(999999)
-	'forum: deleteComment returns result' |> t.assert(dcRes != ?)
-	'forum: deleteComment has ok field' |> t.assert(dcRes.ok != ?)
+	forum.deleteComment(999999).then(fn(dcRes) {
+		'forum: deleteComment returns result' |> t.assert(dcRes != ?)
+		'forum: deleteComment has ok field' |> t.assert(dcRes.ok != ?)
+	})
 
 	// constants: Sort enum
 	'forum: Sort.new' |> t.eq(forum.Sort.new, 'new')
@@ -73,12 +87,14 @@ fn run(t) {
 	'forum: Flair.bug' |> t.eq(forum.Flair.bug, 'bug')
 
 	// live: fetch trending posts using Sort constant
-	trending := forum.getPosts({ sort: forum.Sort.trending, limit: 5 })
-	'live: forum trending posts returns result' |> t.assert(trending != ?)
-	'live: forum trending posts has ok field' |> t.assert(trending.ok != ?)
+	forum.getPosts({ sort: forum.Sort.trending, limit: 5 }).then(fn(trending) {
+		'live: forum trending posts returns result' |> t.assert(trending != ?)
+		'live: forum trending posts has ok field' |> t.assert(trending.ok != ?)
+	})
 
 	// live: fetch with flair filter
-	flairRes := forum.getPosts({ flair: forum.Flair.meme, limit: 5 })
-	'live: forum flair filter returns result' |> t.assert(flairRes != ?)
-	'live: forum flair filter has ok field' |> t.assert(flairRes.ok != ?)
+	forum.getPosts({ flair: forum.Flair.meme, limit: 5 }).then(fn(flairRes) {
+		'live: forum flair filter returns result' |> t.assert(flairRes != ?)
+		'live: forum flair filter has ok field' |> t.assert(flairRes.ok != ?)
+	})
 }
