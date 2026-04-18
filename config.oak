@@ -54,10 +54,10 @@ RewardsDistribution := {
 }
 
 // get fetches the platform configuration (no auth required).
-fn get() _parse(_req('GET', _base() + '/config'))
+fn get() _req('GET', _base() + '/config').then(_parse)
 
 // health checks server liveness. Returns { ok: true, data: ... } if up.
-fn health() _parse(_req('GET', _base() + '/health'))
+fn health() _req('GET', _base() + '/health').then(_parse)
 
 // solPrice fetches the current SOL/USD price from CoinGecko.
 // The Luna app polls this every 60s. Returns { ok: true, price: float }

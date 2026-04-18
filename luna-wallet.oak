@@ -18,29 +18,29 @@ json := import('json')
 
 // balances returns SOL, USDC, and LUNA token balances for an address.
 fn balances(address) {
-	_parse(_req('GET', _base() + '/wallet/balances/' + string(address), ?))
+	_req('GET', _base() + '/wallet/balances/' + string(address), ?).then(_parse)
 }
 
 // holdings returns token holdings for an address.
 fn holdings(address) {
-	_parse(_req('GET', _base() + '/wallet/holdings/' + string(address), ?))
+	_req('GET', _base() + '/wallet/holdings/' + string(address), ?).then(_parse)
 }
 
 // --- History -----------------------------------------------------------------
 
 // history returns the authenticated user's transaction history.
-fn history() _parse(_req('GET', _base() + '/wallet/history', ?))
+fn history() _req('GET', _base() + '/wallet/history', ?).then(_parse)
 
 // --- Allowance ---------------------------------------------------------------
 
 // allowance returns the user's USDC allowance and delegate status.
-fn allowance() _parse(_req('GET', _base() + '/wallet/allowance', ?))
+fn allowance() _req('GET', _base() + '/wallet/allowance', ?).then(_parse)
 
 // --- Sync --------------------------------------------------------------------
 
 // syncDeposits triggers a deposit sync for the authenticated user.
-fn syncDeposits() _parse(_req('POST', _base() + '/wallet/sync-deposits', json.serialize({})))
+fn syncDeposits() _req('POST', _base() + '/wallet/sync-deposits', json.serialize({})).then(_parse)
 
 // recordTransfer logs a transfer transaction in Luna's ledger.
 //   recordTransfer({ from: '...', to: '...', amount: 100, token: '...', txHash: '...' })
-fn recordTransfer(opts) _parse(_req('POST', _base() + '/wallet/record-transfer', json.serialize(opts)))
+fn recordTransfer(opts) _req('POST', _base() + '/wallet/record-transfer', json.serialize(opts)).then(_parse)

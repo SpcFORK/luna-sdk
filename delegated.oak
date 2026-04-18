@@ -18,23 +18,19 @@ fn requestDelegation(address, opts) {
 		expiresAt: opts.expiresAt
 		delegatee: opts.delegatee
 	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/request', body)
-	_parseDelegationResponse(resp)
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/request', body).then(_parseDelegationResponse)
 }
 
 fn approveDelegation(delegationId) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/approve', json.serialize({ delegationId: delegationId }))
-	_parseDelegationResponse(resp)
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/approve', json.serialize({ delegationId: delegationId })).then(_parseDelegationResponse)
 }
 
 fn revokeDelegation(delegationId) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/revoke', json.serialize({ delegationId: delegationId }))
-	_parseDelegationResponse(resp)
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/delegated-actions/revoke', json.serialize({ delegationId: delegationId })).then(_parseDelegationResponse)
 }
 
 fn listDelegations() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/delegated-actions', ?)
-	_parseDelegationResponse(resp)
+	auth._req('GET', auth._cfg.privyBase + '/api/v1/delegated-actions', ?).then(_parseDelegationResponse)
 }
 
 // --- Session Signers ---------------------------------------------------------
@@ -46,18 +42,15 @@ fn createSessionSigner(opts) {
 		chainIds: opts.chainIds
 		walletAddress: opts.walletAddress
 	})
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/create', body)
-	_parseSessionResponse(resp)
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/create', body).then(_parseSessionResponse)
 }
 
 fn revokeSessionSigner(sessionId) {
-	resp := auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/revoke', json.serialize({ sessionId: sessionId }))
-	_parseSessionResponse(resp)
+	auth._req('POST', auth._cfg.privyBase + '/api/v1/session-signers/revoke', json.serialize({ sessionId: sessionId })).then(_parseSessionResponse)
 }
 
 fn listSessionSigners() {
-	resp := auth._req('GET', auth._cfg.privyBase + '/api/v1/session-signers', ?)
-	_parseSessionResponse(resp)
+	auth._req('GET', auth._cfg.privyBase + '/api/v1/session-signers', ?).then(_parseSessionResponse)
 }
 
 // --- Internal ----------------------------------------------------------------

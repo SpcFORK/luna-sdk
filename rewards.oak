@@ -3,4 +3,4 @@
 { base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
 // pool returns the current rewards pool info.
-fn pool() _parse(_bareReq('GET', _base() + '/rewards/pool'))
+fn pool() _bareReq('GET', _base() + '/rewards/pool').then(_parse)

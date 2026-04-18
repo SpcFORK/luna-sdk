@@ -1,0 +1,77 @@
+// luna-api/_fetch — platform-adaptive HTTP request layer.
+//
+// Provides a Thenable type and a platform-aware fetch helper that
+// works synchronously on native Oak and asynchronously on JS runtimes
+// (browser / Node.js) by delegating to req(data, callback).
+//
+// __Is_Oak_Node is a JS runtime constant defined in the compiled output:
+//   true  — Node.js
+//   false — browser
+//   ?     — native Oak (variable is undefined)
+// It is NOT mangled by the Oak→JS compiler.
+
+// --- Platform Detection ------------------------------------------------------
+
+// _jsRuntime? returns true when executing inside a JS environment.
+fn _jsRuntime?() __Is_Oak_Node != ?
+
+// --- Thenable ----------------------------------------------------------------
+//
+// A lightweight promise-like wrapper.  On native Oak every Thenable resolves
+// synchronously — .then() chains execute in-line.  On JS runtimes the
+// underlying req(data, cb) is async, so .then() queues callbacks that fire
+// when the response arrives.
+//
+// Usage:
+//   fetch({method:'GET', url:'...'})
+//     .then(fn(raw) raw.resp)
+//     .then(fn(resp) json.parse(resp.body))
+
+// resolved wraps a value in an already-resolved Thenable.
+fn resolved(val) {
+	{
+		then: fn(f) resolved(f(val))
+		value: val
+	}
+}
+
+// pending creates a Thenable that resolves later via ._resolve(v).
+fn pending() {
+	state := { done: false, val: ?, cbs: [] }
+	{
+		then: fn(f) if state.done {
+			true -> resolved(f(state.val))
+			_ -> {
+				next := pending()
+				state.cbs << [f, next]
+				next
+			}
+		}
+		_resolve: fn(v) {
+			state.done <- true
+			state.val <- v
+			fn drain(i) if i < len(state.cbs) -> {
+				pair := state.cbs.(i)
+				(pair.1)._resolve((pair.0)(v))
+				drain(i + 1)
+			}
+			drain(0)
+			state.cbs <- []
+		}
+		value: ?
+	}
+}
+
+// fetch performs an HTTP request and returns a Thenable of the raw
+// req() response envelope ({type: :resp, resp: {status,headers,body}}).
+//
+// On native Oak:  req() is synchronous → resolved Thenable.
+// On JS runtimes: req(data, cb) is async → pending Thenable.
+fn fetch(data) if _jsRuntime?() {
+	true -> {
+		t := pending()
+		req(data, fn(raw) t._resolve(raw))
+		t
+	}
+	_ -> resolved(req(data))
+}

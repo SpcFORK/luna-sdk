@@ -27,13 +27,13 @@ json := import('json')
 
 // --- Internal helper ---------------------------------------------------------
 
-fn _c(method, path, body) _parseResponse(_lunaReq(method, _lunaBase() + path, body))
+fn _c(method, path, body) _lunaReq(method, _lunaBase() + path, body).then(_parseResponse)
 
 // --- Community CRUD ----------------------------------------------------------
 
 fn get(slug) _c('GET', '/communities/' + string(slug), ?)
 
-fn list(opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities', default(opts, {})), ?))
+fn list(opts) _lunaReq('GET', _q(_lunaBase() + '/communities', default(opts, {})), ?).then(_parseResponse)
 
 fn create(opts) _c('POST', '/communities', json.serialize({
 	name: opts.name
@@ -55,11 +55,11 @@ fn del(slug) _c('DELETE', '/communities/' + string(slug), ?)
 fn join(slug) _c('POST', '/communities/' + string(slug) + '/join', json.serialize({}))
 fn leave(slug) _c('POST', '/communities/' + string(slug) + '/leave', json.serialize({}))
 
-fn members(slug, opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/members', default(opts, {})), ?))
+fn members(slug, opts) _lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/members', default(opts, {})), ?).then(_parseResponse)
 
 // --- Posts -------------------------------------------------------------------
 
-fn getPosts(slug, opts) _parseResponse(_lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/posts', default(opts, {})), ?))
+fn getPosts(slug, opts) _lunaReq('GET', _q(_lunaBase() + '/communities/' + string(slug) + '/posts', default(opts, {})), ?).then(_parseResponse)
 
 fn createPost(slug, post) _c('POST', '/communities/' + string(slug) + '/posts', json.serialize(post))
 

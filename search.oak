@@ -10,5 +10,5 @@ http := import('http')
 //   search('alice')
 fn search(query) {
 	url := _base() + '/search?q=' + http.percentEncode(string(query))
-	_parse(_bareReq('GET', url))
+	_bareReq('GET', url).then(_parse)
 }

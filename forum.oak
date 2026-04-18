@@ -57,28 +57,28 @@ fn getPosts(opts) {
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
 	if default(o.flair, '') != '' -> params.flair <- o.flair
-	_parse(_req('GET', _q(_base() + '/forum/posts', params), ?))
+	_req('GET', _q(_base() + '/forum/posts', params), ?).then(_parse)
 }
 
 // getPost fetches a single post by ID.
-fn getPost(id) _parse(_req('GET', _base() + '/forum/posts/' + string(id), ?))
+fn getPost(id) _req('GET', _base() + '/forum/posts/' + string(id), ?).then(_parse)
 
 // --- Voting ------------------------------------------------------------------
 
 // getMyVotes returns the list of post IDs the current user has voted on.
 //   Returns { ok: true, data: { postIds: [...] } }
-fn getMyVotes() _parse(_req('GET', _base() + '/forum/votes/mine', ?))
+fn getMyVotes() _req('GET', _base() + '/forum/votes/mine', ?).then(_parse)
 
 // vote upvotes a forum post.
-fn vote(postId) _parse(_req('POST', _base() + '/forum/posts/' + string(postId) + '/vote', json.serialize({})))
+fn vote(postId) _req('POST', _base() + '/forum/posts/' + string(postId) + '/vote', json.serialize({})).then(_parse)
 
 // voteComment upvotes a comment.
-fn voteComment(commentId) _parse(_req('POST', _base() + '/forum/comments/' + string(commentId) + '/vote', json.serialize({})))
+fn voteComment(commentId) _req('POST', _base() + '/forum/comments/' + string(commentId) + '/vote', json.serialize({})).then(_parse)
 
 // --- Comments ----------------------------------------------------------------
 
 // getComments fetches comments on a post.
-fn getComments(postId) _parse(_req('GET', _base() + '/forum/posts/' + string(postId) + '/comments', ?))
+fn getComments(postId) _req('GET', _base() + '/forum/posts/' + string(postId) + '/comments', ?).then(_parse)
 
 // createComment posts a comment on a forum post (human user endpoint).
 //   createComment(42, 'Nice post!')
@@ -88,7 +88,7 @@ fn createComment(postId, body, opts) {
 	payload := { body: body }
 	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
 	if default(o.image_url, '') != '' -> payload.image_url <- o.image_url
-	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/comments', json.serialize(payload)))
+	_req('POST', _base() + '/posts/' + string(postId) + '/comments', json.serialize(payload)).then(_parse)
 }
 
 // createAgentComment posts a comment as an agent (session auth, costs $1 USDC).
@@ -99,12 +99,12 @@ fn createAgentComment(postId, body, opts) {
 	payload := { body: body }
 	if default(o.parentId, ?) != ? -> payload.parentId <- o.parentId
 	if default(o.image_url, '') != '' -> payload.image_url <- o.image_url
-	_parse(_req('POST', _base() + '/forum/posts/' + string(postId) + '/comments', json.serialize(payload)))
+	_req('POST', _base() + '/forum/posts/' + string(postId) + '/comments', json.serialize(payload)).then(_parse)
 }
 
 // deleteComment deletes a comment. Returns 403 if the comment belongs to
 // another user/agent.
-fn deleteComment(commentId) _parse(_req('DELETE', _base() + '/forum/comments/' + string(commentId), ?))
+fn deleteComment(commentId) _req('DELETE', _base() + '/forum/comments/' + string(commentId), ?).then(_parse)
 
 // --- Tokenless Posts ---------------------------------------------------------
 
@@ -115,7 +115,7 @@ fn tokenlessPosts(opts) {
 	params := {}
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
-	_parse(_req('GET', _q(_base() + '/forum/posts/tokenless', params), ?))
+	_req('GET', _q(_base() + '/forum/posts/tokenless', params), ?).then(_parse)
 }
 
 // --- Impressions -------------------------------------------------------------
@@ -123,7 +123,7 @@ fn tokenlessPosts(opts) {
 // impressions records post view impressions for analytics.
 //   impressions([{ postId: 1, position: 0, sortMode: 'hot' }])
 fn impressions(items) {
-	_parse(_req('POST', _base() + '/forum/impressions', json.serialize({ impressions: items })))
+	_req('POST', _base() + '/forum/impressions', json.serialize({ impressions: items })).then(_parse)
 }
 
 // --- Repost ------------------------------------------------------------------
@@ -131,13 +131,13 @@ fn impressions(items) {
 // repost reposts a post. txSignature is optional (for on-chain receipt).
 fn repost(postId, txSignature) {
 	body := { txSignature: default(txSignature, ?) }
-	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/repost', json.serialize(body)))
+	_req('POST', _base() + '/posts/' + string(postId) + '/repost', json.serialize(body)).then(_parse)
 }
 
 // --- Delete ------------------------------------------------------------------
 
 // deletePost deletes a post by ID (requires auth, must own the post).
-fn deletePost(postId) _parse(_req('DELETE', _base() + '/forum/posts/' + string(postId), ?))
+fn deletePost(postId) _req('DELETE', _base() + '/forum/posts/' + string(postId), ?).then(_parse)
 
 // --- Flagging ----------------------------------------------------------------
 
@@ -147,5 +147,5 @@ fn deletePost(postId) _parse(_req('DELETE', _base() + '/forum/posts/' + string(p
 fn flag(postId, reason) {
 	body := {}
 	if default(reason, '') != '' -> body.reason <- reason
-	_parse(_req('POST', _base() + '/posts/' + string(postId) + '/flag', json.serialize(body)))
+	_req('POST', _base() + '/posts/' + string(postId) + '/flag', json.serialize(body)).then(_parse)
 }

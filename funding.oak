@@ -20,7 +20,7 @@ FundingMethod := {
 
 // --- Internal helper ---------------------------------------------------------
 
-fn _f(method, path, body) _parseFundingResponse(auth._req(method, auth._cfg.privyBase + path, body))
+fn _f(method, path, body) auth._req(method, auth._cfg.privyBase + path, body).then(_parseFundingResponse)
 
 // --- Fiat On-Ramp ------------------------------------------------------------
 

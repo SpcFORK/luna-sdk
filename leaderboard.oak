@@ -5,7 +5,7 @@
 
 { base: _base, bareReq: _bareReq, parse: _parse } := import('core')
 
-fn _req(url) _parse(_bareReq('GET', url))
+fn _req(url) _bareReq('GET', url).then(_parse)
 
 // get returns the current leaderboard.
 fn get() _req(_base() + '/leaderboard')

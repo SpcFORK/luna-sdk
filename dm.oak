@@ -14,11 +14,11 @@ json := import('json')
 // --- Conversations -----------------------------------------------------------
 
 // conversations lists the user's DM conversations.
-fn conversations() _parse(_req('GET', _base() + '/dm/conversations', ?))
+fn conversations() _req('GET', _base() + '/dm/conversations', ?).then(_parse)
 
 // createConversation starts a 1:1 DM with another user.
 fn createConversation(userId) {
-	_parse(_req('POST', _base() + '/dm/conversations', json.serialize({ userId: userId })))
+	_req('POST', _base() + '/dm/conversations', json.serialize({ userId: userId })).then(_parse)
 }
 
 // --- Messages ----------------------------------------------------------------
@@ -31,7 +31,7 @@ fn messages(conversationId, opts) {
 	params := {}
 	if default(o.before, '') != '' -> params.before <- o.before
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
-	_parse(_req('GET', _q(_base() + '/dm/conversations/' + string(conversationId) + '/messages', params), ?))
+	_req('GET', _q(_base() + '/dm/conversations/' + string(conversationId) + '/messages', params), ?).then(_parse)
 }
 
 // sendMessage sends a message in a conversation.
@@ -41,7 +41,7 @@ fn sendMessage(conversationId, body, opts) {
 	o := default(opts, {})
 	payload := { body: body }
 	if default(o.replyToId, ?) != ? -> payload.replyToId <- o.replyToId
-	_parse(_req('POST', _base() + '/dm/conversations/' + string(conversationId) + '/messages', json.serialize(payload)))
+	_req('POST', _base() + '/dm/conversations/' + string(conversationId) + '/messages', json.serialize(payload)).then(_parse)
 }
 
 // --- Group Chats -------------------------------------------------------------
@@ -49,10 +49,10 @@ fn sendMessage(conversationId, body, opts) {
 // createGroup creates a group DM.
 //   createGroup('My Group', [userId1, userId2])
 fn createGroup(name, userIds) {
-	_parse(_req('POST', _base() + '/dm/group', json.serialize({ name: name, userIds: userIds })))
+	_req('POST', _base() + '/dm/group', json.serialize({ name: name, userIds: userIds })).then(_parse)
 }
 
 // addGroupMembers adds members to a group.
 fn addGroupMembers(groupId, userIds) {
-	_parse(_req('POST', _base() + '/dm/group/' + string(groupId) + '/members', json.serialize({ userIds: userIds })))
+	_req('POST', _base() + '/dm/group/' + string(groupId) + '/members', json.serialize({ userIds: userIds })).then(_parse)
 }

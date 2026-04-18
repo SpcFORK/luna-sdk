@@ -14,7 +14,7 @@ http := import('http')
 
 // --- Internal helper ---------------------------------------------------------
 
-fn _m(method, path, body) _parse(_req(method, _base() + path, body))
+fn _m(method, path, body) _req(method, _base() + path, body).then(_parse)
 
 // --- Post Creation -----------------------------------------------------------
 
@@ -71,7 +71,7 @@ fn list(opts) {
 	params := {}
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
-	_parse(_req('GET', _q(_base() + '/memes', params), ?))
+	_req('GET', _q(_base() + '/memes', params), ?).then(_parse)
 }
 
 // --- AI Generation -----------------------------------------------------------

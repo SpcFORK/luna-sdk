@@ -38,12 +38,12 @@ fn _parse(resp) if resp.status {
 
 // createWallet creates a new embedded Solana wallet.
 fn createWallet(opts) {
-	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/create', json.serialize(default(opts, {}))))
+	_req('POST', _apiBase() + '/api/v1/solana/wallets/create', json.serialize(default(opts, {}))).then(_parse)
 }
 
 // createAdditionalWallet creates an additional Solana wallet for the user.
 fn createAdditionalWallet(opts) {
-	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/create-additional', json.serialize(default(opts, {}))))
+	_req('POST', _apiBase() + '/api/v1/solana/wallets/create-additional', json.serialize(default(opts, {}))).then(_parse)
 }
 
 // --- Signing -----------------------------------------------------------------
@@ -52,27 +52,25 @@ fn createAdditionalWallet(opts) {
 //   signMessage('hello', { address: 'base58...' })
 fn signMessage(message, opts) {
 	body := json.serialize({ address: default(opts.address, ''), message: message })
-	resp := _req('POST', _apiBase() + '/api/v1/solana/wallets/sign-message', body)
-	if resp.status {
+	_req('POST', _apiBase() + '/api/v1/solana/wallets/sign-message', body).then(fn(resp) if resp.status {
 		200 -> {
 			data := json.parse(resp.body)
 			{ ok: true, signature: data.signature, data: data }
 		}
 		_ -> _parse(resp)
-	}
+	})
 }
 
 // signTransaction signs a Solana transaction (serialized base64).
 fn signTransaction(transaction, opts) {
 	body := json.serialize({ address: default(opts.address, ''), transaction: transaction })
-	resp := _req('POST', _apiBase() + '/api/v1/solana/wallets/sign-transaction', body)
-	if resp.status {
+	_req('POST', _apiBase() + '/api/v1/solana/wallets/sign-transaction', body).then(fn(resp) if resp.status {
 		200 -> {
 			data := json.parse(resp.body)
 			{ ok: true, signedTransaction: data.signedTransaction, data: data }
 		}
 		_ -> _parse(resp)
-	}
+	})
 }
 
 // --- RPC ---------------------------------------------------------------------
@@ -80,5 +78,5 @@ fn signTransaction(transaction, opts) {
 // rpc sends a JSON-RPC call through a Solana embedded wallet.
 fn rpc(walletAddress, method, params) {
 	body := json.serialize({ address: walletAddress, method: method, params: default(params, []) })
-	_parse(_req('POST', _apiBase() + '/api/v1/solana/wallets/rpc', body))
+	_req('POST', _apiBase() + '/api/v1/solana/wallets/rpc', body).then(_parse)
 }

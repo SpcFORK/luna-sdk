@@ -6,6 +6,7 @@
 
 { default: default } := import('std')
 json := import('json')
+{ fetch: _fetch } := import('_fetch')
 
 // --- Configuration -----------------------------------------------------------
 
@@ -122,18 +123,20 @@ fn loginAsGuest() {
 }
 
 fn logout() {
-	_p('POST', '/api/v1/sessions/revoke', json.serialize({}))
-	setToken(?)
-	setRefreshToken(?)
-	{ ok: true }
+	_p('POST', '/api/v1/sessions/revoke', json.serialize({})).then(fn() {
+		setToken(?)
+		setRefreshToken(?)
+		{ ok: true }
+	})
 }
 
 // sessionLogout sends a logout (as opposed to revoke) to end the session.
 fn sessionLogout() {
-	_p('POST', '/api/v1/sessions/logout', json.serialize({}))
-	setToken(?)
-	setRefreshToken(?)
-	{ ok: true }
+	_p('POST', '/api/v1/sessions/logout', json.serialize({})).then(fn() {
+		setToken(?)
+		setRefreshToken(?)
+		{ ok: true }
+	})
 }
 
 // --- MFA (Multi-Factor Authentication) ---------------------------------------
@@ -279,33 +282,33 @@ fn _parseAuthResponse(resp) if resp.status {
 	}
 }
 
-// _req makes an authenticated HTTP request using the builtin req().
-// req() is synchronous and returns {type: :resp, resp: {status, headers, body}}.
+// _req makes an authenticated HTTP request.
+// Returns a Thenable that resolves to {status, headers, body}.
 fn _req(method, url, body) {
 	headers := _authHeaders()
-	raw := req({
+	_fetch({
 		method: method
 		url: url
 		headers: headers
 		body: default(body, '')
-	})
-	if raw.type {
+	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
 		_ -> { status: 0, body: '', headers: {} }
-	}
+	})
 }
 
 // _p sends a request to a Privy API path and parses the response.
 //   _p('POST', '/api/v1/foo', json.serialize({...}))
 //   _p('GET', '/api/v1/bar')
-fn _p(method, path, body) _parseAuthResponse(_req(method, _cfg.privyBase + path, body))
+fn _p(method, path, body) _req(method, _cfg.privyBase + path, body).then(_parseAuthResponse)
 
 // _login sends a POST to Privy, parses, and auto-sets token/refreshToken.
 fn _login(path, body) {
-	result := _p('POST', path, body)
-	if result.token != ? -> {
-		setToken(result.token)
-		setRefreshToken(result.refreshToken)
-	}
-	result
+	_p('POST', path, body).then(fn(result) {
+		if result.token != ? -> {
+			setToken(result.token)
+			setRefreshToken(result.refreshToken)
+		}
+		result
+	})
 }

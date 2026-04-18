@@ -4,10 +4,10 @@ json := import('json')
 { base: _base, authReq: _req, bareReq: _bareReq, parse: _parse } := import('core')
 
 // active returns currently active spotlighted posts (no auth required).
-fn active() _parse(_bareReq('GET', _base() + '/spotlight/active'))
+fn active() _bareReq('GET', _base() + '/spotlight/active').then(_parse)
 
 // create spotlights a post. Requires a transaction signature as proof of payment.
 //   create({ postId: 42, communityId: 1, txSignature: '...' })
 fn create(opts) {
-	_parse(_req('POST', _base() + '/spotlight', json.serialize(opts)))
+	_req('POST', _base() + '/spotlight', json.serialize(opts)).then(_parse)
 }

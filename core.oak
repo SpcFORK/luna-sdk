@@ -6,6 +6,7 @@
 json := import('json')
 http := import('http')
 auth := import('auth')
+{ fetch: _fetch } := import('_fetch')
 
 fn base() auth._cfg.apiBase
 
@@ -13,30 +14,28 @@ fn base() auth._cfg.apiBase
 fn authReq(method, url, body) {
 	headers := { 'Content-Type': 'application/json' }
 	if auth.getToken() != ? -> headers.'Authorization' <- 'Bearer ' + string(auth.getToken())
-	raw := req({
+	_fetch({
 		method: method
 		url: url
 		headers: headers
 		body: default(body, '')
-	})
-	if raw.type {
+	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
 		_ -> { status: 0, body: '', headers: {} }
-	}
+	})
 }
 
 // bareReq makes an HTTP request with no auth or content-type headers.
 fn bareReq(method, url) {
-	raw := req({
+	_fetch({
 		method: method
 		url: url
 		headers: {}
 		body: ''
-	})
-	if raw.type {
+	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
 		_ -> { status: 0, body: '', headers: {} }
-	}
+	})
 }
 
 // parse handles standard Luna API responses (200/201 ok, 204 no-content, else error).

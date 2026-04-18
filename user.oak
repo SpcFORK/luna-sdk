@@ -24,17 +24,17 @@ http := import('http')
 // --- Current User ------------------------------------------------------------
 
 // me fetches the authenticated user's profile.
-fn me() _parse(_req('GET', _base() + '/user/me', ?))
+fn me() _req('GET', _base() + '/user/me', ?).then(_parse)
 
 // updateMe updates the authenticated user's profile fields.
 //   updateMe({ walletAddress: '...', displayName: '...', bio: '...' })
-fn updateMe(fields) _parse(_req('PUT', _base() + '/user/me', json.serialize(fields)))
+fn updateMe(fields) _req('PUT', _base() + '/user/me', json.serialize(fields)).then(_parse)
 
 // --- Profile Lookup ----------------------------------------------------------
 
 // profile fetches a public user profile by username.
 fn profile(username) {
-	_parse(_req('GET', _base() + '/user/profile/' + http.percentEncode(string(username)), ?))
+	_req('GET', _base() + '/user/profile/' + http.percentEncode(string(username)), ?).then(_parse)
 }
 
 // profilePosts fetches posts by a user (by username).
@@ -45,109 +45,109 @@ fn profilePosts(username, opts) {
 	if default(o.sort, '') != '' -> params.sort <- o.sort
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
-	_parse(_req('GET', _q(_base() + '/user/profile/' + http.percentEncode(string(username)) + '/posts', params), ?))
+	_req('GET', _q(_base() + '/user/profile/' + http.percentEncode(string(username)) + '/posts', params), ?).then(_parse)
 }
 
 // checkUsername checks if a username is available.
 fn checkUsername(name) {
-	_parse(_req('GET', _base() + '/user/check-username/' + http.percentEncode(string(name)), ?))
+	_req('GET', _base() + '/user/check-username/' + http.percentEncode(string(name)), ?).then(_parse)
 }
 
 // --- Saved Posts -------------------------------------------------------------
 
 // saved fetches the user's saved/bookmarked posts.
-fn saved() _parse(_req('GET', _base() + '/user/saved', ?))
+fn saved() _req('GET', _base() + '/user/saved', ?).then(_parse)
 
 // savedIds fetches just the IDs of saved posts (lightweight).
-fn savedIds() _parse(_req('GET', _base() + '/user/saved/ids', ?))
+fn savedIds() _req('GET', _base() + '/user/saved/ids', ?).then(_parse)
 
 // --- Reposts -----------------------------------------------------------------
 
 // repostedIds returns post IDs the user has reposted.
-fn repostedIds() _parse(_req('GET', _base() + '/user/reposted-ids', ?))
+fn repostedIds() _req('GET', _base() + '/user/reposted-ids', ?).then(_parse)
 
 // --- My Posts ----------------------------------------------------------------
 
 // myPosts returns the authenticated user's own posts.
-fn myPosts() _parse(_req('GET', _base() + '/user/my-posts', ?))
+fn myPosts() _req('GET', _base() + '/user/my-posts', ?).then(_parse)
 
 // pinPost pins a post to the user's profile.
 fn pinPost(postId) {
-	_parse(_req('POST', _base() + '/user/pin-post', json.serialize({ postId: postId })))
+	_req('POST', _base() + '/user/pin-post', json.serialize({ postId: postId })).then(_parse)
 }
 
 // --- Communities -------------------------------------------------------------
 
 // myCommunities returns communities the user belongs to.
-fn myCommunities() _parse(_req('GET', _base() + '/user/my-communities', ?))
+fn myCommunities() _req('GET', _base() + '/user/my-communities', ?).then(_parse)
 
 // userCommunities returns communities a specific user belongs to (by user ID).
 fn userCommunities(userId) {
-	_parse(_req('GET', _base() + '/user/' + string(userId) + '/communities', ?))
+	_req('GET', _base() + '/user/' + string(userId) + '/communities', ?).then(_parse)
 }
 
 // spotlightCommunity returns the user's chosen spotlight community.
-fn spotlightCommunity() _parse(_req('GET', _base() + '/user/spotlight-community', ?))
+fn spotlightCommunity() _req('GET', _base() + '/user/spotlight-community', ?).then(_parse)
 
 // setSpotlightCommunity sets the user's spotlight community.
 //   setSpotlightCommunity(42)
 fn setSpotlightCommunity(communityId) {
-	_parse(_req('PUT', _base() + '/user/spotlight-community', json.serialize({ communityId: communityId })))
+	_req('PUT', _base() + '/user/spotlight-community', json.serialize({ communityId: communityId })).then(_parse)
 }
 
 // --- API Keys ----------------------------------------------------------------
 
 // apiKeys lists the user's API keys.
-fn apiKeys() _parse(_req('GET', _base() + '/user/api-keys', ?))
+fn apiKeys() _req('GET', _base() + '/user/api-keys', ?).then(_parse)
 
 // createApiKey creates a new API key with the given label.
 fn createApiKey(label) {
-	_parse(_req('POST', _base() + '/user/api-keys', json.serialize({ label: label })))
+	_req('POST', _base() + '/user/api-keys', json.serialize({ label: label })).then(_parse)
 }
 
 // deleteApiKey deletes an API key by ID.
 fn deleteApiKey(keyId) {
-	_parse(_req('DELETE', _base() + '/user/api-keys/' + string(keyId), ?))
+	_req('DELETE', _base() + '/user/api-keys/' + string(keyId), ?).then(_parse)
 }
 
 // --- Agents ------------------------------------------------------------------
 
 // agents returns the user's registered agents.
-fn agents() _parse(_req('GET', _base() + '/user/agents', ?))
+fn agents() _req('GET', _base() + '/user/agents', ?).then(_parse)
 
 // addAgent registers an agent for the user.
 fn addAgent(agentId) {
-	_parse(_req('POST', _base() + '/user/agents', json.serialize({ agentId: agentId })))
+	_req('POST', _base() + '/user/agents', json.serialize({ agentId: agentId })).then(_parse)
 }
 
 // removeAgent unregisters an agent.
 fn removeAgent(agentId) {
-	_parse(_req('DELETE', _base() + '/user/agents/' + string(agentId), ?))
+	_req('DELETE', _base() + '/user/agents/' + string(agentId), ?).then(_parse)
 }
 
 // --- Folders -----------------------------------------------------------------
 
 // folders lists the user's post folders.
-fn folders() _parse(_req('GET', _base() + '/user/folders', ?))
+fn folders() _req('GET', _base() + '/user/folders', ?).then(_parse)
 
 // createFolder creates a new folder.
 fn createFolder(name) {
-	_parse(_req('POST', _base() + '/user/folders', json.serialize({ name: name })))
+	_req('POST', _base() + '/user/folders', json.serialize({ name: name })).then(_parse)
 }
 
 // getFolder fetches a folder by ID.
 fn getFolder(folderId) {
-	_parse(_req('GET', _base() + '/user/folders/' + string(folderId), ?))
+	_req('GET', _base() + '/user/folders/' + string(folderId), ?).then(_parse)
 }
 
 // deleteFolder deletes a folder.
 fn deleteFolder(folderId) {
-	_parse(_req('DELETE', _base() + '/user/folders/' + string(folderId), ?))
+	_req('DELETE', _base() + '/user/folders/' + string(folderId), ?).then(_parse)
 }
 
 // folderPosts returns posts in a folder.
 fn folderPosts(folderId) {
-	_parse(_req('GET', _base() + '/user/folders/' + string(folderId) + '/posts', ?))
+	_req('GET', _base() + '/user/folders/' + string(folderId) + '/posts', ?).then(_parse)
 }
 
 // --- Featured Users ----------------------------------------------------------
@@ -159,5 +159,5 @@ fn featured(opts) {
 	o := default(opts, {})
 	url := _base() + '/featured-users'
 	if default(o.limit, 0) > 0 -> url <- url + '?limit=' + string(o.limit)
-	_parse(_req('GET', url, ?))
+	_req('GET', url, ?).then(_parse)
 }

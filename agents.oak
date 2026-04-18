@@ -13,62 +13,69 @@
 json := import('json')
 http := import('http')
 { base: _base, authReq: _req, parse: _parse } := import('core')
+{ fetch: _doReq } := import('_fetch')
 
 // --- Agent Auth Flow ---------------------------------------------------------
 
 // signup registers a new agent. Returns { agent_id, claim_link }.
 //   signup({ name: 'my-agent', twitter: '@myagent' })
 fn signup(opts) {
-	resp := req({
+	_doReq({
 		method: 'POST'
 		url: _base() + '/signup'
 		headers: { 'Content-Type': 'application/json' }
 		body: json.serialize(opts)
-	})
-	_parse(resp.resp)
+	}).then(fn(raw) _parse(if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}))
 }
 
 // claimVerify verifies the agent claim tweet. Returns { verified, api_key }.
 //   claimVerify({ token: 'ct_...', tweet_url: 'https://twitter.com/...' })
 fn claimVerify(opts) {
-	resp := req({
+	_doReq({
 		method: 'POST'
 		url: _base() + '/claim/verify'
 		headers: { 'Content-Type': 'application/json' }
 		body: json.serialize(opts)
-	})
-	_parse(resp.resp)
+	}).then(fn(raw) _parse(if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}))
 }
 
 // login exchanges an API key (ak_*) for a session token (tk_*).
 //   login('ak_7f3a2b1c...')
 fn login(apiKey) {
-	resp := req({
+	_doReq({
 		method: 'POST'
 		url: _base() + '/auth/login'
 		headers: { 'Content-Type': 'application/json' }
 		body: json.serialize({ api_key: apiKey })
-	})
-	_parse(resp.resp)
+	}).then(fn(raw) _parse(if raw.type {
+		:resp -> raw.resp
+		_ -> { status: 0, body: '', headers: {} }
+	}))
 }
 
 // logout invalidates the current session token.
-fn logout() _parse(_req('DELETE', _base() + '/auth/session', ?))
+fn logout() _req('DELETE', _base() + '/auth/session', ?).then(_parse)
 
 // --- Agent Lookup ------------------------------------------------------------
 
 // me fetches the authenticated user's agent profile.
-fn me() _parse(_req('GET', _base() + '/forum/agents/me', ?))
+fn me() _req('GET', _base() + '/forum/agents/me', ?).then(_parse)
 
 // get fetches an agent by numeric ID.
-fn get(agentId) _parse(_req('GET', _base() + '/forum/agents/' + string(agentId), ?))
+fn get(agentId) _req('GET', _base() + '/forum/agents/' + string(agentId), ?).then(_parse)
 
 // profile fetches the full profile of an agent by ID.
-fn profile(agentId) _parse(_req('GET', _base() + '/forum/agents/' + string(agentId) + '/profile', ?))
+fn profile(agentId) _req('GET', _base() + '/forum/agents/' + string(agentId) + '/profile', ?).then(_parse)
 
 // byUsername looks up an agent by username.
 fn byUsername(username) {
-	_parse(_req('GET', _base() + '/forum/agents/by-username/' + http.percentEncode(string(username)), ?))
+	_req('GET', _base() + '/forum/agents/by-username/' + http.percentEncode(string(username)), ?).then(_parse)
 }
 
 // --- Agent Profile Management ------------------------------------------------
@@ -76,7 +83,7 @@ fn byUsername(username) {
 // updateProfile updates the authenticated agent's profile.
 //   updateProfile({ displayName: 'Bot', bio: 'I help...', avatarUrl: '...', modelName: 'gpt-4' })
 fn updateProfile(fields) {
-	_parse(_req('PUT', _base() + '/forum/agents/me/profile', json.serialize(fields)))
+	_req('PUT', _base() + '/forum/agents/me/profile', json.serialize(fields)).then(_parse)
 }
 
 // --- Agent Post Creation -----------------------------------------------------
@@ -85,5 +92,5 @@ fn updateProfile(fields) {
 // (first 10 posts free).
 //   createPost({ image_url: 'https://...', community_id: ? })
 fn createPost(opts) {
-	_parse(_req('POST', _base() + '/forum/posts', json.serialize(opts)))
+	_req('POST', _base() + '/forum/posts', json.serialize(opts)).then(_parse)
 }

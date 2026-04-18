@@ -36,16 +36,17 @@ fn _apiBase() auth._cfg.privyBase
 fn _req(method, url, body) auth._req(method, url, body)
 
 // Internal helpers for common patterns
-fn _w(method, path, body) _parseWalletResponse(_req(method, _apiBase() + path, body))
+fn _w(method, path, body) _req(method, _apiBase() + path, body).then(_parseWalletResponse)
 
 // _walletOp sends a wallet request, auto-adds to _wallets and sets active on success.
 fn _walletOp(path, body) {
-	result := _w('POST', path, body)
-	if result.ok -> {
-		_wallets <- _wallets << result.wallet
-		setActiveWallet(result.wallet)
-	}
-	result
+	_w('POST', path, body).then(fn(result) {
+		if result.ok -> {
+			_wallets <- _wallets << result.wallet
+			setActiveWallet(result.wallet)
+		}
+		result
+	})
 }
 
 // --- Wallet Creation ---------------------------------------------------------
@@ -58,11 +59,12 @@ fn exportWallet(address) _w('POST', '/api/v1/embedded-wallets/export', json.seri
 // --- Wallet Connection -------------------------------------------------------
 
 fn connectWallet(opts) {
-	result := _w('POST', '/api/v1/wallets/connect', json.serialize(opts))
-	if result.ok -> {
-		_wallets <- _wallets << result.wallet
-	}
-	result
+	_w('POST', '/api/v1/wallets/connect', json.serialize(opts)).then(fn(result) {
+		if result.ok -> {
+			_wallets <- _wallets << result.wallet
+		}
+		result
+	})
 }
 
 fn connectCoinbaseSmartWallet(opts) connectWallet({
@@ -82,11 +84,12 @@ fn getWalletPrivateKey(address) exportWallet(address)
 // --- Wallet Migration --------------------------------------------------------
 
 fn migrateWallets(opts) {
-	result := _w('POST', '/api/v1/embedded-wallets/migrate', json.serialize(default(opts, {})))
-	if result.ok -> {
-		each(default(result.data.wallets, []), fn(w) _wallets <- _wallets << w)
-	}
-	result
+	_w('POST', '/api/v1/embedded-wallets/migrate', json.serialize(default(opts, {}))).then(fn(result) {
+		if result.ok -> {
+			each(default(result.data.wallets, []), fn(w) _wallets <- _wallets << w)
+		}
+		result
+	})
 }
 
 // --- Recovery (iCloud / OAuth) -----------------------------------------------
@@ -159,7 +162,7 @@ fn walletRpc(walletId, rpcMethod, rpcParams) {
 fn _signOp(path, field, value, opts) {
 	wallet := default(if opts != ? -> opts.address, _activeWalletAddress())
 	body := json.serialize({ address: wallet, (field): value })
-	_parseSignResponse(_req('POST', _apiBase() + path, body))
+	_req('POST', _apiBase() + path, body).then(_parseSignResponse)
 }
 
 fn signMessage(message, opts) _signOp('/api/v1/wallets/sign-message', 'message', message, opts)
@@ -169,7 +172,7 @@ fn signTransaction(tx, opts) _signOp('/api/v1/wallets/sign-transaction', 'transa
 fn sendTransaction(tx, opts) {
 	wallet := default(if opts != ? -> opts.address, _activeWalletAddress())
 	body := json.serialize({ address: wallet, transaction: tx })
-	_parseTxResponse(_req('POST', _apiBase() + '/api/v1/wallets/send-transaction', body))
+	_req('POST', _apiBase() + '/api/v1/wallets/send-transaction', body).then(_parseTxResponse)
 }
 
 // --- Transaction Scanning ----------------------------------------------------
@@ -183,7 +186,7 @@ fn scanTransaction(tx, chainId) {
 
 fn sign7702Authorization(authorization) {
 	wallet := _activeWalletAddress()
-	_parseSignResponse(_req('POST', _apiBase() + '/api/v1/wallets/sign-7702', json.serialize({ address: wallet, authorization: authorization })))
+	_req('POST', _apiBase() + '/api/v1/wallets/sign-7702', json.serialize({ address: wallet, authorization: authorization })).then(_parseSignResponse)
 }
 
 // --- Internal Helpers --------------------------------------------------------

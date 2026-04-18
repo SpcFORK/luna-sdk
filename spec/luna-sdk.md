@@ -4,6 +4,20 @@ _Auto-generated from Magnolia source._
 
 ---
 
+## Module: `_fetch.oak`
+
+### `_jsRuntime?()`
+
+### `resolved(val)`
+
+> returns `:object`
+
+### `pending()`
+
+> returns `:object`
+
+### `fetch(data)`
+
 ## Module: `admin.oak`
 
 - `json` · `import(...)`
@@ -115,11 +129,7 @@ _Auto-generated from Magnolia source._
 
 ### `logout()`
 
-> returns `:object`
-
 ### `sessionLogout()`
-
-> returns `:object`
 
 ### `mfaEnrollTotp()`
 
@@ -804,11 +814,7 @@ _Auto-generated from Magnolia source._
 
 ### `signMessage(message, opts)`
 
-> returns `:object`
-
 ### `signTransaction(transaction, opts)`
-
-> returns `:object`
 
 ### `rpc(walletAddress, method, params)`
 

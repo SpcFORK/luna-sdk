@@ -4,5 +4,5 @@
 
 // get fetches a collection by ID.
 fn get(collectionId) {
-	_parse(_bareReq('GET', _base() + '/collections/' + string(collectionId)))
+	_bareReq('GET', _base() + '/collections/' + string(collectionId)).then(_parse)
 }

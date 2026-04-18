@@ -23,16 +23,16 @@ fn list(opts) {
 	params := {}
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
-	_parse(_req('GET', _q(_base() + '/notifications', params), ?))
+	_req('GET', _q(_base() + '/notifications', params), ?).then(_parse)
 }
 
 // unreadCount returns the count of unread notifications.
-fn unreadCount() _parse(_req('GET', _base() + '/notifications/unread-count', ?))
+fn unreadCount() _req('GET', _base() + '/notifications/unread-count', ?).then(_parse)
 
 // markAllRead marks all notifications as read.
-fn markAllRead() _parse(_req('PUT', _base() + '/notifications/read-all', json.serialize({})))
+fn markAllRead() _req('PUT', _base() + '/notifications/read-all', json.serialize({})).then(_parse)
 
 // markRead marks a single notification as read by ID.
 fn markRead(notifId) {
-	_parse(_req('PUT', _base() + '/notifications/' + string(notifId) + '/read', json.serialize({})))
+	_req('PUT', _base() + '/notifications/' + string(notifId) + '/read', json.serialize({})).then(_parse)
 }

@@ -7,34 +7,34 @@ json := import('json')
 
 // highlightCommunity toggles community highlight status.
 fn highlightCommunity(slug, highlighted) {
-	_parse(_req('PATCH', _base() + '/admin/communities/' + string(slug) + '/highlight', json.serialize({ highlighted: highlighted })))
+	_req('PATCH', _base() + '/admin/communities/' + string(slug) + '/highlight', json.serialize({ highlighted: highlighted })).then(_parse)
 }
 
 // --- User Admin --------------------------------------------------------------
 
 // setUserRole sets a user's platform role (e.g., 'admin', 'moderator', 'user').
 fn setUserRole(userId, role) {
-	_parse(_req('PUT', _base() + '/admin/users/' + string(userId) + '/role', json.serialize({ role: role })))
+	_req('PUT', _base() + '/admin/users/' + string(userId) + '/role', json.serialize({ role: role })).then(_parse)
 }
 
 // verifyUser toggles a user's verification status.
 fn verifyUser(userId, verified) {
-	_parse(_req('PATCH', _base() + '/admin/users/' + string(userId) + '/verify', json.serialize({ verified: verified })))
+	_req('PATCH', _base() + '/admin/users/' + string(userId) + '/verify', json.serialize({ verified: verified })).then(_parse)
 }
 
 // highlightUser toggles a user's highlight status.
 fn highlightUser(userId, highlighted) {
-	_parse(_req('PATCH', _base() + '/admin/users/' + string(userId) + '/highlight', json.serialize({ highlighted: highlighted })))
+	_req('PATCH', _base() + '/admin/users/' + string(userId) + '/highlight', json.serialize({ highlighted: highlighted })).then(_parse)
 }
 
 // --- Spotlight Admin ----------------------------------------------------------
 
 // removeSpotlight removes a spotlighted post (admin only).
 fn removeSpotlight(spotlightId) {
-	_parse(_req('DELETE', _base() + '/admin/spotlight/' + string(spotlightId), ?))
+	_req('DELETE', _base() + '/admin/spotlight/' + string(spotlightId), ?).then(_parse)
 }
 
 // --- Payout ------------------------------------------------------------------
 
 // triggerPayout triggers a manual payout cycle (admin only).
-fn triggerPayout() _parse(_req('POST', _base() + '/admin/payout/trigger', json.serialize({})))
+fn triggerPayout() _req('POST', _base() + '/admin/payout/trigger', json.serialize({})).then(_parse)

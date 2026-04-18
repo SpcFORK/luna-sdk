@@ -9,4 +9,4 @@
 { base: _base, bareReq: _req, parse: _parse } := import('core')
 
 // luna returns Luna token overall stats (no auth required).
-fn luna() _parse(_req('GET', _base() + '/stats/luna'))
+fn luna() _req('GET', _base() + '/stats/luna').then(_parse)

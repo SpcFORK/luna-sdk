@@ -10,10 +10,10 @@ json := import('json')
 { base: _base, authReq: _req, parse: _parse, withQuery: _q } := import('core')
 
 // claim claims pending referral rewards.
-fn claim() _parse(_req('POST', _base() + '/referral/claim', json.serialize({})))
+fn claim() _req('POST', _base() + '/referral/claim', json.serialize({})).then(_parse)
 
 // stats returns referral statistics.
-fn stats() _parse(_req('GET', _base() + '/referral/stats', ?))
+fn stats() _req('GET', _base() + '/referral/stats', ?).then(_parse)
 
 // history returns referral history with optional pagination.
 //   history()
@@ -23,5 +23,5 @@ fn history(opts) {
 	params := {}
 	if default(o.cursor, '') != '' -> params.cursor <- o.cursor
 	if default(o.limit, 0) > 0 -> params.limit <- string(o.limit)
-	_parse(_req('GET', _q(_base() + '/referral/history', params), ?))
+	_req('GET', _q(_base() + '/referral/history', params), ?).then(_parse)
 }

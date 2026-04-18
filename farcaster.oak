@@ -9,7 +9,7 @@ auth := import('auth')
 
 // --- Internal helpers --------------------------------------------------------
 
-fn _f(method, path, body) _parseFarcasterResponse(auth._req(method, auth._cfg.privyBase + path, body))
+fn _f(method, path, body) auth._req(method, auth._cfg.privyBase + path, body).then(_parseFarcasterResponse)
 
 // --- Farcaster Auth ----------------------------------------------------------
 
@@ -20,12 +20,13 @@ fn createFarcasterSigner() _f('POST', '/api/v1/farcaster/init', json.serialize({
 fn checkFarcasterStatus(nonce) _f('GET', '/api/v1/farcaster/status?nonce=' + string(default(nonce, '')), ?)
 
 fn authenticateFarcaster(message, signature) {
-	result := _f('POST', '/api/v1/farcaster/authenticate', json.serialize({ message: message, signature: signature }))
-	if result.ok -> if result.data.token != ? -> {
-		auth.setToken(result.data.token)
-		auth.setRefreshToken(result.data.refreshToken)
-	}
-	result
+	_f('POST', '/api/v1/farcaster/authenticate', json.serialize({ message: message, signature: signature })).then(fn(result) {
+		if result.ok -> if result.data.token != ? -> {
+			auth.setToken(result.data.token)
+			auth.setRefreshToken(result.data.refreshToken)
+		}
+		result
+	})
 }
 
 fn linkFarcaster(opts) _f('POST', '/api/v1/farcaster/link', json.serialize(default(opts, {})))

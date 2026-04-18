@@ -13,7 +13,7 @@ json := import('json')
 
 // --- Internal helper ---------------------------------------------------------
 
-fn _s(method, path, body) _parse(_req(method, _base() + path, body))
+fn _s(method, path, body) _req(method, _base() + path, body).then(_parse)
 
 // --- User Follow -------------------------------------------------------------
 
