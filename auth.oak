@@ -290,7 +290,7 @@ fn _req(method, url, body) {
 		method: method
 		url: url
 		headers: headers
-		body: default(body, '')
+		body: body
 	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
 		_ -> { status: 0, body: '', headers: {} }

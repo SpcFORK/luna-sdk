@@ -33,7 +33,7 @@ fn fetch(url, opts) {
 		method: method
 		url: url
 		headers: headers
-		body: default(body, '')
+		body: body
 	})
 	resp := if raw.type {
 		:resp -> raw.resp
@@ -83,7 +83,7 @@ fn payAndRetry(url, opts, paymentDetails, signFn) {
 		method: default(if opts != ? -> opts.method, 'GET')
 		url: url
 		headers: headers
-		body: default(if opts != ? -> opts.body, '')
+		body: if opts != ? -> opts.body
 	})
 	resp := if raw.type {
 		:resp -> raw.resp

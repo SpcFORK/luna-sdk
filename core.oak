@@ -18,9 +18,10 @@ fn authReq(method, url, body) {
 		method: method
 		url: url
 		headers: headers
-		body: default(body, '')
+		body: body
 	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
+		:error -> { status: 0, body: json.serialize({ error: raw.error }), headers: {} }
 		_ -> { status: 0, body: '', headers: {} }
 	})
 }
@@ -31,9 +32,10 @@ fn bareReq(method, url) {
 		method: method
 		url: url
 		headers: {}
-		body: ''
+		body: ?
 	}).then(fn(raw) if raw.type {
 		:resp -> raw.resp
+		:error -> { status: 0, body: json.serialize({ error: raw.error }), headers: {} }
 		_ -> { status: 0, body: '', headers: {} }
 	})
 }

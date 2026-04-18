@@ -38,7 +38,7 @@ fn resolved(val) {
 // pending creates a Thenable that resolves later via ._resolve(v).
 fn pending() {
 	state := { done: false, val: ?, cbs: [] }
-	{
+	t := {
 		then: fn(f) if state.done {
 			true -> resolved(f(state.val))
 			_ -> {
@@ -50,6 +50,7 @@ fn pending() {
 		_resolve: fn(v) {
 			state.done <- true
 			state.val <- v
+			t.value <- v
 			fn drain(i) if i < len(state.cbs) -> {
 				pair := state.cbs.(i)
 				(pair.1)._resolve((pair.0)(v))
