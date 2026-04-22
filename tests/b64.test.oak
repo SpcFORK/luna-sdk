@@ -1,0 +1,63 @@
+// b64 tests — validates Base64URL encoding against RFC 4648 known vectors.
+
+b64 := import('../b64')
+crypto := import('crypto')
+
+fn run(t) {
+	// ── fromHex: empty ────────────────────────────────────────────────────────
+
+	'b64.fromHex empty string' |> t.eq(b64.fromHex(''), '')
+
+	// ── fromHex: full 3-byte groups (4 output chars each) ────────────────────
+
+	// RFC 4648 example: "Man" → base64 "TWFu", base64url identical
+	'b64.fromHex 3-byte "Man"' |> t.eq(b64.fromHex('4d616e'), 'TWFu')
+
+	// All zero bytes
+	'b64.fromHex 3× 0x00' |> t.eq(b64.fromHex('000000'), 'AAAA')
+
+	// All 0xFF bytes — verifies - and _ chars (the URL-safe substitutions)
+	'b64.fromHex 3× 0xFF' |> t.eq(b64.fromHex('ffffff'), '____')
+
+	// Mixed: 0x00 0xFF 0x00
+	// b0=0,b1=255,b2=0 → c0=0→A, c1=(0<<4|15)=15→P, c2=(15<<2|0)=60→8, c3=0→A
+	'b64.fromHex 0x00 0xFF 0x00' |> t.eq(b64.fromHex('00ff00'), 'AP8A')
+
+	// ── fromHex: 2-byte input (3 output chars, no padding) ───────────────────
+
+	// "Ma" → base64url "TWE" (standard would be "TWE=", we drop the =)
+	'b64.fromHex 2-byte "Ma"' |> t.eq(b64.fromHex('4d61'), 'TWE')
+
+	// 0x00 0xFF → A, c1=(0<<4|15)=15→P, c2=(15<<2|0)=60→8 → "AP8"
+	'b64.fromHex 2-byte 0x00 0xFF' |> t.eq(b64.fromHex('00ff'), 'AP8')
+
+	// ── fromHex: 1-byte input (2 output chars, no padding) ───────────────────
+
+	// "M" (0x4D=77) → b0>>2=19→T, (b0&3)<<4=16→Q  → "TQ"
+	'b64.fromHex 1-byte "M"' |> t.eq(b64.fromHex('4d'), 'TQ')
+
+	// 0xFF → b0>>2=63→_, (255&3)<<4=48→w  → "_w"  (no, let me recalculate)
+	// b0=255: c0=255>>2=63→_, c1=(255&3)<<4|0>>4 = 3<<4 = 48→w
+	'b64.fromHex 1-byte 0xFF' |> t.eq(b64.fromHex('ff'), '_w')
+
+	// ── fromHex: multi-group (6 bytes → 8 chars) ─────────────────────────────
+
+	// "foobar" = 0x66 0x6f 0x6f 0x62 0x61 0x72 → base64url "Zm9vYmFy"
+	'b64.fromHex 6-byte "foobar"' |> t.eq(b64.fromHex('666f6f626172'), 'Zm9vYmFy')
+
+	// ── encodeBytes: direct list encoding ────────────────────────────────────
+
+	'b64.encodeBytes [77,97,110]' |> t.eq(b64.encodeBytes([77, 97, 110]), 'TWFu')
+	'b64.encodeBytes [0,0,0]' |> t.eq(b64.encodeBytes([0, 0, 0]), 'AAAA')
+	'b64.encodeBytes [255,255,255]' |> t.eq(b64.encodeBytes([255, 255, 255]), '____')
+	'b64.encodeBytes empty' |> t.eq(b64.encodeBytes([]), '')
+
+	// ── PKCE output shape: fromHex(randomBytes(32)) must be 43 chars ─────────
+	// 32 bytes = 10 full groups (40 chars) + 1 partial group of 2 bytes (3 chars) = 43
+	verifier := b64.fromHex(crypto.randomBytes(32))
+	'b64 PKCE verifier length is 43' |> t.eq(len(verifier), 43)
+
+	// ── fromHex(sha256) must be 43 chars (32 bytes → 43 base64url chars) ─────
+	challenge := b64.fromHex(crypto.sha256('hello'))
+	'b64 sha256 challenge length is 43' |> t.eq(len(challenge), 43)
+}

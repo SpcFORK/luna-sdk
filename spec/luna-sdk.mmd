@@ -3,87 +3,78 @@ title: Module Dependency Graph
 ---
 flowchart LR
     subgraph project_modules ["Project Modules"]
-        memes_oak["memes.oak"]
+        rewards_oak["rewards.oak"]
+        thread["thread"]
+        contracts_oak["contracts.oak"]
         luna_wallet_oak["luna-wallet.oak"]
-        spotlight_oak["spotlight.oak"]
+        chains_oak["chains.oak"]
+        payments_oak["payments.oak"]
+        sort["sort"]
+        b64_oak["b64.oak"]
+        social_oak["social.oak"]
+        funding_oak["funding.oak"]
+        notifications_oak["notifications.oak"]
+        core_oak["core.oak"]
+        main_oak(["main.oak"])
+        _fetch_oak["_fetch.oak"]
+        crypto["crypto"]
+        auth_oak["auth.oak"]
+        errors_oak["errors.oak"]
+        http["http"]
+        search_oak["search.oak"]
+        delegated_oak["delegated.oak"]
+        analytics_oak["analytics.oak"]
+        communities_oak["communities.oak"]
+        leaderboard_oak["leaderboard.oak"]
+        donate_oak["donate.oak"]
+        json["json"]
+        x402_oak["x402.oak"]
+        fs["fs"]
+        referral_oak["referral.oak"]
+        forum_oak["forum.oak"]
+        giphy_oak["giphy.oak"]
+        fmt["fmt"]
+        dm_oak["dm.oak"]
+        token_oak["token.oak"]
+        memes_oak["memes.oak"]
+        user_oak["user.oak"]
         farcaster_oak["farcaster.oak"]
         config_oak["config.oak"]
-        core_oak["core.oak"]
-        user_oak["user.oak"]
-        chains_oak["chains.oak"]
-        admin_oak["admin.oak"]
-        main_oak(["main.oak"])
-        x402_oak["x402.oak"]
-        donate_oak["donate.oak"]
-        giphy_oak["giphy.oak"]
-        stats_oak["stats.oak"]
-        errors_oak["errors.oak"]
-        search_oak["search.oak"]
-        leaderboard_oak["leaderboard.oak"]
-        agents_oak["agents.oak"]
-        communities_oak["communities.oak"]
-        contracts_oak["contracts.oak"]
-        payments_oak["payments.oak"]
-        wallet_oak["wallet.oak"]
-        solana_oak["solana.oak"]
-        collections_oak["collections.oak"]
-        funding_oak["funding.oak"]
-        referral_oak["referral.oak"]
-        analytics_oak["analytics.oak"]
-        social_oak["social.oak"]
-        rewards_oak["rewards.oak"]
-        token_oak["token.oak"]
-        delegated_oak["delegated.oak"]
-        dm_oak["dm.oak"]
-        forum_oak["forum.oak"]
-        notifications_oak["notifications.oak"]
-        _fetch_oak["_fetch.oak"]
         erc6492_oak["erc6492.oak"]
-        auth_oak["auth.oak"]
+        spotlight_oak["spotlight.oak"]
+        collections_oak["collections.oak"]
+        stats_oak["stats.oak"]
+        str["str"]
+        solana_oak["solana.oak"]
+        std["std"]
+        agents_oak["agents.oak"]
+        admin_oak["admin.oak"]
+        wallet_oak["wallet.oak"]
     end
-    subgraph stdlib_core ["Standard Library"]
-        fmt("fmt")
-        sort("sort")
-        thread("thread")
-        json("json")
-        http("http")
-        str("str")
-        fs("fs")
-        std("std")
-    end
-    memes_oak --> json
-    memes_oak --> http
-    memes_oak --> std
-    memes_oak --> core_oak
+    rewards_oak --> core_oak
+    thread --> std
     luna_wallet_oak --> json
     luna_wallet_oak --> core_oak
-    spotlight_oak --> json
-    spotlight_oak --> core_oak
-    http --> std
-    http --> str
-    http --> fs
-    http --> fmt
-    http --> sort
-    http --> json
-    http --> thread
-    farcaster_oak --> std
-    farcaster_oak --> json
-    farcaster_oak --> auth_oak
-    config_oak --> std
-    config_oak --> json
-    config_oak --> core_oak
+    chains_oak --> std
+    payments_oak --> json
+    payments_oak --> core_oak
+    sort --> std
+    sort --> thread
+    b64_oak --> std
+    social_oak --> json
+    social_oak --> core_oak
+    funding_oak --> std
+    funding_oak --> json
+    funding_oak --> http
+    funding_oak --> auth_oak
+    notifications_oak --> std
+    notifications_oak --> json
+    notifications_oak --> core_oak
     core_oak --> std
     core_oak --> json
     core_oak --> http
     core_oak --> auth_oak
     core_oak --> _fetch_oak
-    user_oak --> std
-    user_oak --> json
-    user_oak --> http
-    user_oak --> core_oak
-    chains_oak --> std
-    admin_oak --> json
-    admin_oak --> core_oak
     main_oak --> core_oak
     main_oak --> auth_oak
     main_oak --> wallet_oak
@@ -119,72 +110,87 @@ flowchart LR
     main_oak --> analytics_oak
     main_oak --> agents_oak
     main_oak --> donate_oak
+    crypto --> std
+    crypto --> str
+    crypto --> thread
+    auth_oak --> std
+    auth_oak --> json
+    auth_oak --> _fetch_oak
+    auth_oak --> crypto
+    auth_oak --> b64_oak
+    http --> std
+    http --> str
+    http --> fs
+    http --> fmt
+    http --> sort
+    http --> json
+    http --> thread
+    search_oak --> http
+    search_oak --> core_oak
+    delegated_oak --> std
+    delegated_oak --> json
+    delegated_oak --> auth_oak
+    analytics_oak --> std
+    analytics_oak --> json
+    analytics_oak --> auth_oak
+    communities_oak --> std
+    communities_oak --> json
+    communities_oak --> core_oak
+    leaderboard_oak --> core_oak
+    donate_oak --> json
+    donate_oak --> core_oak
+    json --> std
+    json --> str
     x402_oak --> std
     x402_oak --> json
     x402_oak --> auth_oak
-    str --> std
-    donate_oak --> json
-    donate_oak --> core_oak
+    fs --> thread
+    referral_oak --> std
+    referral_oak --> json
+    referral_oak --> core_oak
+    forum_oak --> std
+    forum_oak --> json
+    forum_oak --> core_oak
     giphy_oak --> std
     giphy_oak --> http
     giphy_oak --> core_oak
-    stats_oak --> core_oak
-    search_oak --> http
-    search_oak --> core_oak
-    leaderboard_oak --> core_oak
     fmt --> std
+    dm_oak --> std
+    dm_oak --> json
+    dm_oak --> core_oak
+    token_oak --> json
+    token_oak --> core_oak
+    memes_oak --> json
+    memes_oak --> http
+    memes_oak --> std
+    memes_oak --> core_oak
+    user_oak --> std
+    user_oak --> json
+    user_oak --> http
+    user_oak --> core_oak
+    farcaster_oak --> std
+    farcaster_oak --> json
+    farcaster_oak --> auth_oak
+    config_oak --> std
+    config_oak --> json
+    config_oak --> core_oak
+    erc6492_oak --> std
+    erc6492_oak --> str
+    spotlight_oak --> json
+    spotlight_oak --> core_oak
+    collections_oak --> core_oak
+    stats_oak --> core_oak
+    str --> std
+    solana_oak --> std
+    solana_oak --> json
+    solana_oak --> auth_oak
     agents_oak --> json
     agents_oak --> http
     agents_oak --> core_oak
     agents_oak --> _fetch_oak
-    fs --> thread
-    communities_oak --> std
-    communities_oak --> json
-    communities_oak --> core_oak
-    payments_oak --> json
-    payments_oak --> core_oak
+    admin_oak --> json
+    admin_oak --> core_oak
     wallet_oak --> std
     wallet_oak --> json
     wallet_oak --> http
     wallet_oak --> auth_oak
-    sort --> std
-    sort --> thread
-    thread --> std
-    solana_oak --> std
-    solana_oak --> json
-    solana_oak --> auth_oak
-    collections_oak --> core_oak
-    funding_oak --> std
-    funding_oak --> json
-    funding_oak --> http
-    funding_oak --> auth_oak
-    referral_oak --> std
-    referral_oak --> json
-    referral_oak --> core_oak
-    json --> std
-    json --> str
-    analytics_oak --> std
-    analytics_oak --> json
-    analytics_oak --> auth_oak
-    social_oak --> json
-    social_oak --> core_oak
-    rewards_oak --> core_oak
-    token_oak --> json
-    token_oak --> core_oak
-    delegated_oak --> std
-    delegated_oak --> json
-    delegated_oak --> auth_oak
-    dm_oak --> std
-    dm_oak --> json
-    dm_oak --> core_oak
-    forum_oak --> std
-    forum_oak --> json
-    forum_oak --> core_oak
-    notifications_oak --> std
-    notifications_oak --> json
-    notifications_oak --> core_oak
-    erc6492_oak --> std
-    erc6492_oak --> str
-    auth_oak --> std
-    auth_oak --> json
-    auth_oak --> _fetch_oak

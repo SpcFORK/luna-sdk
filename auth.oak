@@ -4,9 +4,11 @@
 // interfaces. When compiled to --target web, calls resolve to the underlying
 // Privy React hooks; in other targets they operate through the HTTP bridge.
 
-{ default: default } := import('std')
+{ default: default, range: range, map: map } := import('std')
 json := import('json')
 { fetch: _fetch } := import('_fetch')
+crypto := import('crypto')
+b64 := import('./b64')
 
 // --- Configuration -----------------------------------------------------------
 
@@ -16,17 +18,19 @@ _cfg := {
 	apiBase: 'https://lunaapi-production.up.railway.app/api'
 	privyBase: 'https://auth.privy.io'
 	clientId: ''
+	origin: ''
 	token: ?
 	refreshToken: ?
 }
 
 // configure sets auth module config.
-//  configure({ appId: 'clx...', apiBase: 'https://...' })
+//  configure({ appId: 'clx...', apiBase: 'https://...', origin: 'https://...' })
 fn configure(opts) {
 	_cfg.appId <- default(opts.appId, _cfg.appId)
 	_cfg.apiBase <- default(opts.apiBase, _cfg.apiBase)
 	_cfg.privyBase <- default(opts.privyBase, _cfg.privyBase)
 	_cfg.clientId <- default(opts.clientId, _cfg.clientId)
+	_cfg.origin <- default(opts.origin, _cfg.origin)
 }
 
 // --- Token state -------------------------------------------------------------
@@ -38,11 +42,15 @@ fn setRefreshToken(t) _cfg.refreshToken <- t
 
 fn authenticated?() _cfg.token != ?
 
+// debugInfo returns a sanitised snapshot of the current auth config (no secrets).
+fn debugInfo() { appId: _cfg.appId, clientId: _cfg.clientId, hasToken: _cfg.token != ? }
+
 // _authHeaders builds standard auth headers for Privy API calls.
 fn _authHeaders() {
 	h := { 'Content-Type': 'application/json' }
 	if _cfg.appId != '' -> h.'privy-app-id' <- _cfg.appId
 	if _cfg.clientId != '' -> h.'privy-client-id' <- _cfg.clientId
+	if _cfg.origin != '' -> h.'Origin' <- _cfg.origin
 	if _cfg.token != ? -> h.'Authorization' <- 'Bearer ' + string(_cfg.token)
 	h
 }
@@ -57,16 +65,49 @@ fn verifyEmailCode(flowId, code) {
 	_login('/api/v1/passwordless/authenticate', json.serialize({ flowId: flowId, code: code }))
 }
 
+// --- PKCE S256 Helpers (OAuth) ----------------------------------------------
+//
+// Uses crypto.randomBytes() (hex output) + b64.fromHex() to avoid the
+// srand() binary-string indexing hazard with bytes > 0x7F.
+
+// _pkceVerifier generates a PKCE code_verifier: 32 random bytes expressed
+// as 43 base64url characters (RFC 7636 §4.1).
+fn _pkceVerifier() b64.fromHex(crypto.randomBytes(32))
+
+// _pkceChallenge derives the S256 code_challenge from a verifier:
+//   BASE64URL(SHA256(ASCII(verifier)))
+fn _pkceChallenge(verifier) b64.fromHex(crypto.sha256(verifier))
+
+// _oauthState generates a random CSRF state token (32 bytes → 43 base64url chars).
+fn _oauthState() b64.fromHex(crypto.randomBytes(32))
+
+// loginWithOAuth initiates OAuth for a provider.
+// Generates PKCE verifier + challenge and a CSRF state code client-side.
+// The returned result includes a `codeVerifier` field — pass it to
+// authenticateOAuth so the server can verify the PKCE exchange.
 fn loginWithOAuth(provider, opts) {
-	_p('POST', '/api/v1/oauth/init', json.serialize({ provider: string(provider), redirectUrl: default(opts.redirectUrl, '') }))
+	codeVerifier := _pkceVerifier()
+	codeChallenge := _pkceChallenge(codeVerifier)
+	stateCode := _oauthState()
+	_p('POST', '/api/v1/oauth/init', json.serialize({
+		provider: string(provider)
+		redirect_to: default(opts.redirectUrl, '')
+		code_challenge: codeChallenge
+		state_code: stateCode
+	})).then(fn(result) {
+		result.codeVerifier <- codeVerifier
+		result
+	})
 }
 
 // authenticateOAuth completes OAuth login after the redirect callback.
+// opts.codeVerifier must be the value returned inside the loginWithOAuth result.
 fn authenticateOAuth(authorizationCode, stateCode, opts) {
 	_login('/api/v1/oauth/authenticate', json.serialize({
 		authorizationCode: authorizationCode
 		stateCode: stateCode
-		redirectUrl: default(opts.redirectUrl, '')
+		codeVerifier: default(opts.codeVerifier, '')
+		redirect_to: default(opts.redirectUrl, '')
 	}))
 }
 
@@ -255,30 +296,48 @@ fn mfaVerifySms(code) _p('POST', '/api/v1/mfa/passwordless_sms/verify', json.ser
 
 // --- Internal Helpers --------------------------------------------------------
 
-fn _parseAuthResponse(resp) if resp.status {
-	200, 201 -> {
-		data := json.parse(resp.body)
-		{
-			ok: true
-			data: data
-			token: data.token
-			refreshToken: data.refreshToken
-			user: data.user
-		}
+fn _parseAuthResponse(resp) {
+	if type(resp) != :object -> {
+		ok: false
+		error: 'Request failed before response'
+		code: 0
+		raw: resp
 	}
-	400, 401, 403, 404, 422 -> {
-		data := json.parse(resp.body)
-		{
+
+	body := default(resp.body, '')
+	parsed := if body != '' {
+		true -> json.parse(body)
+		_ -> {}
+	}
+	data := if type(parsed) = :object {
+		true -> parsed
+		_ -> { message: default(body, 'Authentication failed') }
+	}
+
+	if resp.status {
+		200, 201 -> {
+			{
+				ok: true
+				data: data
+				token: default(data.token, ?)
+				refreshToken: default(data.refreshToken, ?)
+				user: default(data.user, ?)
+			}
+		}
+		400, 401, 403, 404, 422 -> {
+			{
+				ok: false
+				error: default(data.message, 'Authentication failed')
+				code: resp.status
+				data: data
+			}
+		}
+		_ -> {
 			ok: false
-			error: default(data.message, 'Authentication failed')
+			error: default(data.message, 'Unexpected response: ' + string(resp.status))
 			code: resp.status
 			data: data
 		}
-	}
-	_ -> {
-		ok: false
-		error: 'Unexpected response: ' + string(resp.status)
-		code: resp.status
 	}
 }
 
@@ -291,9 +350,14 @@ fn _req(method, url, body) {
 		url: url
 		headers: headers
 		body: body
-	}).then(fn(raw) if raw.type {
-		:resp -> raw.resp
-		_ -> { status: 0, body: '', headers: {} }
+	}).then(fn(raw) {
+		if type(raw) = :object {
+			true -> if raw.type {
+				:resp -> raw.resp
+				_ -> { status: 0, body: '', headers: {}, raw: raw }
+			}
+			_ -> { status: 0, body: '', headers: {}, raw: raw }
+		}
 	})
 }
 

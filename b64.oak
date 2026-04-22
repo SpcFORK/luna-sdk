@@ -1,0 +1,84 @@
+// luna-sdk/b64 — Base64URL (RFC 4648 §5) encoding utilities.
+//
+// URL-safe alphabet (A-Z a-z 0-9 - _), no padding characters.
+//
+// Key design choice: all entry points work on hex strings or integer-byte
+// lists rather than raw binary strings from srand(). This avoids the Oak
+// string-indexing hazard where bytes > 0x7F form multi-byte UTF-8 sequences,
+// causing len() and character indexing to disagree on byte count.
+//
+// Usage:
+//   b64 := import('./b64')
+//   b64.fromHex('4d616e')        // => 'TWFu'
+//   b64.encodeBytes([77, 97, 110]) // => 'TWFu'
+
+{
+	default: default
+	range: range
+	map: map
+} := import('std')
+
+// _alphabet is the base64url character set (RFC 4648 Table 2).
+_alphabet := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+
+// _hexNibble maps a single lowercase hex character to its integer nibble value.
+_hexNibble := {
+	'0': 0, '1': 1, '2': 2, '3': 3, '4': 4
+	'5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+	'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15
+}
+
+// encodeBytes encodes a list of integer byte values (0–255) as a base64url
+// string without padding. Missing tail bytes are zero-padded per RFC 4648.
+//
+// IMPORTANT – Oak operator precedence gotcha:
+//   << and >> both have precedence 1 (the LOWEST), while | has precedence 10.
+//   This means `a << 4 | b >> 4` parses as `a << (4 | b) >> 4`, NOT as the
+//   intended `(a << 4) | (b >> 4)`. Every shift-before-OR expression MUST use
+//   explicit inner parentheses: `(a << 4) | (b >> 4)`.
+//
+// Example:
+//   encodeBytes([77, 97, 110])    // => 'TWFu'   ("Man")
+//   encodeBytes([77, 97])         // => 'TWE'    ("Ma", no padding)
+//   encodeBytes([77])             // => 'TQ'     ("M", no padding)
+fn encodeBytes(bytes) {
+	n := len(bytes)
+	fn enc(i, acc) if i >= n {
+		true -> acc
+		_ -> {
+			b0 := bytes.(i)
+			b1 := default(bytes.(i + 1), 0)
+			b2 := default(bytes.(i + 2), 0)
+			// Always emit c0, c1 (2 chars per group minimum).
+			// Emit c2 only when a second input byte exists (i+1 < n).
+			// Emit c3 only when a third input byte exists (i+2 < n).
+			//
+			// Explicit inner parens required: << and >> have equal precedence 1,
+			// lower than | (precedence 10). Without parens, `a << 4 | b` would
+			// be parsed as `a << (4 | b)` — a massive and wrong shift amount.
+			c0 := _alphabet.(b0 >> 2)
+			c1 := _alphabet.(((b0 & 3) << 4) | (b1 >> 4))
+			c2 := default(if i + 1 < n -> _alphabet.(((b1 & 15) << 2) | (b2 >> 6)), '')
+			c3 := default(if i + 2 < n -> _alphabet.(b2 & 63), '')
+			enc(i + 3, acc + c0 + c1 + c2 + c3)
+		}
+	}
+	enc(0, '')
+}
+
+// fromHex encodes a lowercase hexadecimal string as base64url without padding.
+// The input must contain an even number of hex characters (0–9, a–f).
+//
+// This is the preferred way to base64url-encode data obtained from
+// crypto.randomBytes() or crypto.sha256(), since those return safe ASCII hex.
+//
+// Example:
+//   fromHex('4d616e')    // => 'TWFu'   (same as encodeBytes([77, 97, 110]))
+//   fromHex('000000')    // => 'AAAA'
+//   fromHex('ffffff')    // => '____'
+//   fromHex('')          // => ''
+fn fromHex(hex) {
+	n := len(hex) / 2
+	fn getByte(i) _hexNibble.(hex.(i * 2)) * 16 + _hexNibble.(hex.(i * 2 + 1))
+	encodeBytes(range(n) |> map(getByte))
+}
